@@ -4,6 +4,8 @@ public enum BotCommands {
 
 	START("/start"), 
 	HIDE("/hide"), 
+        LOGIN("/login"),
+        LOGOUT("/logout"),
 	TODO_LIST("/todolist"),
 	ADD_ITEM("/additem"),
         CANCEL("/cancel"),
