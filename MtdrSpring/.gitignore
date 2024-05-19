@@ -9,4 +9,4 @@ terraform/terraform.tfstate
 tls/
 wallet/
 env.sh
-
+backend/src/main/resources/application.properties
