@@ -12,7 +12,7 @@ public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "team_id")
-    private int teamId;
+    private int id;
 
     @Column(name = "name")
     private String name;
@@ -27,19 +27,19 @@ public class Team {
 
     }
 
-    public Team(int teamId, String name, int num_members) {
-        this.teamId = teamId;
+    public Team(int id, String name, int num_members) {
+        this.id = id;
         this.name = name;
         this.numMembers = num_members;
     }
 
     // Getter and setter for team_id
-    public long getTeam_id() {
-        return teamId;
+    public long getId() {
+        return id;
     }
 
-    public void setTeam_id(int teamId) {
-        this.teamId = teamId;
+    public void setId(int id) {
+        this.id = id;
     }
 
     // Getter and setter for name
@@ -62,7 +62,7 @@ public class Team {
 
     @Override
     public String toString() {
-        return "Team{" + "team_id=" + teamId + ", name=" + name + ", num_members=" + numMembers + '}';
+        return "Team{" + "id=" + id + ", name=" + name + ", num_members=" + numMembers + '}';
     }
     
     

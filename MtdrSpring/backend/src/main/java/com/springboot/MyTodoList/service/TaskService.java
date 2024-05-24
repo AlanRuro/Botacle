@@ -53,7 +53,7 @@ public class TaskService {
         Optional<Task> taskData = taskRepository.findById(id);
         if(taskData.isPresent()){
             Task task = taskData.get();
-            task.setTaskId(id);
+            task.setId(id);
             task.setName(td.getName());
             task.setDescription(td.getDescription());
             task.setStartDate(td.getStartDate());

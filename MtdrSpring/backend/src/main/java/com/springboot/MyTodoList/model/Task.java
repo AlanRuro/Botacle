@@ -10,7 +10,8 @@ public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int taskId;
+    @Column(name = "task_id")
+    private int id;
 
     @Column(name = "name")
     private String name;
@@ -18,13 +19,13 @@ public class Task {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "isDone")
+    @Column(name = "is_done")
     private boolean isDone;
 
-    @Column(name = "startDate")
+    @Column(name = "start_date")
     private Date startDate;
 
-    @Column(name = "endDate")
+    @Column(name = "end_date")
     private Date endDate;
 
     @ManyToOne
@@ -36,8 +37,8 @@ public class Task {
     }
 
     // Constructor con todos los campos
-    public Task(int taskId, String name, String description, boolean isDone, Date startDate, Date endDate, Member member) {
-        this.taskId = taskId;
+    public Task(int id, String name, String description, boolean isDone, Date startDate, Date endDate, Member member) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.isDone = isDone;
@@ -47,12 +48,12 @@ public class Task {
     }
 
     // Getters y Setters
-    public int getTaskId() {
-        return taskId;
+    public int getId() {
+        return id;
     }
 
-    public void setTaskId(int taskId) {
-        this.taskId = taskId;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {

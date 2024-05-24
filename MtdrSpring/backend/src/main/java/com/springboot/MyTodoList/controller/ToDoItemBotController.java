@@ -180,7 +180,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             for (Task task : tasks) {
                 InlineKeyboardButton taskButton = new InlineKeyboardButton();
                 taskButton.setText(task.getName());
-                taskButton.setCallbackData("task-" + Integer.toString(task.getTaskId()));
+                taskButton.setCallbackData("task-" + Integer.toString(task.getId()));
                 row.add(taskButton);
             }
             keyboardRows.add(row);

@@ -14,7 +14,7 @@ public class Credential {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "credential_id")
-    private int credential_id;
+    private int id;
 
     @Column(name = "username")
     private String username;
@@ -27,12 +27,12 @@ public class Credential {
     private Member member;
     
 
-    public int getCredential_id() {
-        return credential_id;
+    public int getId() {
+        return id;
     }
 
-    public void setCredential_id(int credential_id) {
-        this.credential_id = credential_id;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public Member getMember() {
@@ -61,7 +61,7 @@ public class Credential {
 
     @Override
     public String toString() {
-        return "Credential{" + "credential_id=" + credential_id + ", username=" + username + ", password=" + password + '}';
+        return "Credential{" + "id=" + id + ", username=" + username + ", password=" + password + '}';
     }
     
     
