@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 
-import javax.sql.DataSource;
+import jakarta.sql.DataSource;
 import java.sql.SQLException;
 ///*
 //    This class grabs the appropriate values for OracleDataSource,

@@ -7,7 +7,7 @@ package com.springboot.MyTodoList.repository;
 
 import com.springboot.MyTodoList.model.Credential;
 import com.springboot.MyTodoList.model.Member;
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
