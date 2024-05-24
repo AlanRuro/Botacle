@@ -8,6 +8,7 @@ import com.springboot.MyTodoList.service.AuthService;
 import com.springboot.MyTodoList.service.ChatSession;
 import com.springboot.MyTodoList.service.MemberService;
 import com.springboot.MyTodoList.service.TaskService;
+import com.springboot.MyTodoList.service.TaskSessionService;
 import com.springboot.MyTodoList.util.BotCommandFactory;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -39,20 +40,18 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
     private final TaskService taskService;
-    private final ChatSession chatSession;
-    private final AuthService authService;
+    private final TaskSessionService taskSessionService;
     private final MemberService memberService;
     private final String botName;
 
-    public ToDoItemBotController(String botToken, String botName, TaskService taskService, MemberService memberService, AuthService authService) {
+    public ToDoItemBotController(String botToken, String botName, TaskService taskService, MemberService memberService, TaskSessionService taskSessionService) {
         super(botToken);
         logger.info("Bot Token: " + botToken);
         logger.info("Bot name: " + botName);
-        this.authService = authService;
+        this.taskSessionService = taskSessionService;
         this.taskService = taskService;
         this.memberService = memberService;
         this.botName = botName;
-        this.chatSession = new ChatSession();
     }
 
     @Override
@@ -64,15 +63,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             long chatId = update.getMessage().getChatId();
             long userId = update.getMessage().getFrom().getId();
 
-            logger.info("userid: " + userId);
-
+//            logger.info("userid: " + userId);
             handleReplies(chatId, userId, messageTextFromTelegram);
-
-            //if(chatSession.getChatState(chatId) == null){
-            //    send(chatId, "El estado del chat " + chatId + " es nulo");
-            //}else{
-            //    send(chatId, "Chat state: " + chatSession.getChatState(chatId));
-            //}
 
         } else if (update.hasCallbackQuery()) {
 
@@ -83,56 +75,12 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleReplies(long chatId, long userId, String message) {
-        BotState currentState = chatSession.getChatState(chatId);
-        if (currentState == null) {
-            sendBasicCommands(chatId);
-            if (message.equals(BotCommands.START.getCommand())) {
-                send(chatId, BotMessages.HELLO_MYTODO_BOT.getMessage());
-            } else if (message.equals(BotCommands.LOGIN.getCommand())) {
-                send(chatId, "Ingresa tu username:");
-                chatSession.createEmptyCredentials(chatId, userId);
-                chatSession.setChatState(chatId, BotState.AWAITING_USERNAME);
-            } else if (message.equals(BotCommands.CANCEL.getCommand())) {
-                chatSession.removeCredentials(chatId);
-            } else {
-                replyToUnkownText(chatId);
-            }
+        TaskDto taskSessionDto = taskSessionService.getTaskSession(chatId);
+        if (taskSessionDto != null) {
+            handleTaskSession(chatId, taskSessionDto, message);
         } else {
-            handleStates(chatId, userId, message, currentState);
-        }
-    }
-
-    private void handleStates(long chatId, long userId, String message, BotState currentState) {
-        switch (currentState) {
-            case AUTHENTICATED:
-                Member member = getMember(userId);
-                handleAuthenticatedCommands(chatId, member, message);
-                break;
-            case AWAITING_USERNAME:
-                chatSession.setUsername(chatId, message);
-                chatSession.setChatState(chatId, BotState.AWAITING_PASSWORD);
-                send(chatId, "Ingresa tu contraseña:");
-                break;
-            case AWAITING_PASSWORD:
-                chatSession.setPassword(chatId, message);
-                authenticateUser(chatId, userId);
-                break;
-            case AWAITING_TASK_NAME:
-                chatSession.setTaskName(chatId, message);
-                send(chatId, "Ingresa la descripcion");
-                break;
-            case AWAITING_TASK_DESCRIPTION:
-                chatSession.setTaskDescription(chatId, message);
-                TaskDto newTask = chatSession.getTaskInCreation(chatId);
-                Task registeredTask = taskService.addTask(newTask);
-                send(chatId, "Tarea: " + registeredTask.getName() + " registrada");
-
-                chatSession.removeTask(chatId);
-                chatSession.setChatState(chatId, BotState.AUTHENTICATED);
-                break;
-            default:
-                send(chatId, "Estado desconocido");
-
+            Member member = getMember(userId);
+            handleAuthenticatedCommands(chatId, member, message);
         }
     }
 
@@ -143,21 +91,18 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             if (task != null) {
                 send(chatId, task.toString());
             }
-        }
-    }
-
-    private void authenticateUser(long chatId, long telegramId) {
-        String username = chatSession.getUsername(chatId);
-        String password = chatSession.getPassword(chatId);
-        MemberDto memberDto = new MemberDto();
-        memberDto.setTelegramId(telegramId);
-        memberDto.setUsername(username);
-        memberDto.setPassword(password);
-        if (authService.isMemberAuthenticated(memberDto)) {
-            onLoggedIn(chatId, telegramId);
-        } else {
-            send(chatId, "Autenticación fallida. Por favor, intenta de nuevo.");
-            chatSession.removeState(chatId);
+        } else if (data.startsWith("taskSessionYes-")) {
+            long id = Long.parseLong(data.substring(15));
+            TaskDto task = taskSessionService.getTaskSession(id);
+            if (task != null) {
+                taskSessionService.confirmTaskSession(id);
+                taskService.addTask(task);
+                send(chatId, "Tarea agregada");
+            }
+        } else if (data.startsWith("taskSessionNo-")) {
+            long id = Long.parseLong(data.substring(14));
+            taskSessionService.deleteTaskSession(id);
+            send(chatId, "Tarea eliminada");
         }
     }
 
@@ -170,17 +115,36 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             replyToAddTask(chatId, member);
         } else if (message.equals(BotCommands.CANCEL.getCommand())) {
             cancelAction(chatId, member);
-        } else if (message.equals(BotCommands.LOGOUT.getCommand())) {
-            replyToLogOut(chatId);
         } else {
             replyToUnkownText(chatId);
         }
     }
 
-    private void replyToLogOut(long chatId) {
-        sendBasicCommands(chatId);
-        chatSession.removeState(chatId);
-        send(chatId, "Has cerrado sesión exitosamente.");
+    private void handleTaskSession(long chatId, TaskDto newTask, String text) {
+        if (newTask.getName() == null) {
+            newTask.setName(text);
+            send(chatId, "Ingresa la descripcion");
+            taskSessionService.updateTask(chatId, newTask);
+        } else if (newTask.getDescription() == null) {
+            newTask.setDescription(text);
+            taskSessionService.updateTask(chatId, newTask);
+
+            send(chatId, "Nueva tarea:");
+            InlineKeyboardMarkup infoKeyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
+            List<InlineKeyboardButton> row = new ArrayList<>();
+            InlineKeyboardButton yesButton = new InlineKeyboardButton();
+            yesButton.setText("Si");
+            yesButton.setCallbackData("taskSessionYes-" + Long.toString(chatId));
+            InlineKeyboardButton noButton = new InlineKeyboardButton();
+            noButton.setText("No");
+            noButton.setCallbackData("taskSessionNo-" + Long.toString(chatId));
+            row.add(yesButton);
+            row.add(noButton);
+            keyboardRows.add(row);
+            infoKeyboardMarkup.setKeyboard(keyboardRows);
+            sendInlineKeyboard(chatId, newTask.getName() + " " + newTask.getDescription(), infoKeyboardMarkup);
+        }
     }
 
     @Override
@@ -195,19 +159,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private void replyToUnkownText(long chatId) {
         send(chatId, BotMessages.UNKNOWN_TEXT.getMessage());
-    }
-
-    private void onLoggedIn(long chatId, long telegramId) {
-        chatSession.setChatState(chatId, BotState.AUTHENTICATED);
-        SetMyCommands commands;
-        Member member = getMember(telegramId);
-        if (member.getIsManager()) {
-            commands = BotCommandFactory.getCommandsForManager(chatId);
-        } else {
-            commands = BotCommandFactory.getCommandsForEmployee(chatId);
-        }
-        send(chatId, "Autenticación exitosa. Bienvenido!");
-        sendCommandsToBot(commands);
     }
 
     private void replyToStart(long chatId) {
@@ -240,12 +191,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private void replyToAddTask(long chatId, Member member) {
         send(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage());
-        chatSession.createEmptyTask(chatId, member);
-        chatSession.setChatState(chatId, BotState.AWAITING_TASK_NAME);
+        taskSessionService.createEmptyTask(chatId, member);
     }
 
     private void cancelAction(long chatId, Member member) {
-        chatSession.removeAllFromChat(chatId);
+        taskSessionService.deleteTaskSession(chatId);
         send(chatId, "Accion cancelada");
     }
 

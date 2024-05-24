@@ -20,12 +20,15 @@ public class TaskDto {
 
     private Date endDate;
     
+    private boolean isFilled;
+    
     private Member member;
 
     public TaskDto() {
         this.name = "";
         this.description = "";
         this.isDone = false;
+        this.isFilled = false;
     }
     
     
@@ -68,6 +71,14 @@ public class TaskDto {
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    public boolean isIsFilled() {
+        return isFilled;
+    }
+
+    public void setIsFilled(boolean isFilled) {
+        this.isFilled = isFilled;
     }
 
     public Member getMember() {
