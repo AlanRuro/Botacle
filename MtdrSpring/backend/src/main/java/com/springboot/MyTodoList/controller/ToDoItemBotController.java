@@ -63,8 +63,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             long chatId = update.getMessage().getChatId();
             long userId = update.getMessage().getFrom().getId();
 
-//            logger.info("userid: " + userId);
-            handleReplies(chatId, userId, messageTextFromTelegram);
+            if (getMember(userId) == null) {
+                send(chatId, "No eres miembro");
+            } else {
+                handleReplies(chatId, userId, messageTextFromTelegram);
+            }
 
         } else if (update.hasCallbackQuery()) {
 
@@ -85,11 +88,24 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleCallbacks(long chatId, String data) {
-        if (data.startsWith("task-")) {
-            int taskId = Integer.parseInt(data.substring(5));
+        if (data.startsWith("activeTask-")) {
+            int taskId = Integer.parseInt(data.substring(11));
             Task task = taskService.getTaskById(taskId);
             if (task != null) {
                 send(chatId, task.toString());
+            }
+        } else if (data.startsWith("doneTask-")) {
+            int taskId = Integer.parseInt(data.substring(9));
+            Task task = taskService.getTaskById(taskId);
+            if (task != null) {
+                send(chatId, task.toString());
+            }
+        } else if (data.startsWith("setDone-")) {
+            int taskId = Integer.parseInt(data.substring(8));
+            Task task = taskService.getTaskById(taskId);
+            if (task != null) {
+                task.setIsDone(true);
+                send(chatId, "Tarea hecha");
             }
         } else if (data.startsWith("taskSessionYes-")) {
             long id = Long.parseLong(data.substring(15));
@@ -169,23 +185,52 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         List<Task> tasks = taskService.getAllByMember(member);
 
         String tasksText;
-        InlineKeyboardMarkup tasksKeyboardMarkup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
+
         if (tasks.isEmpty()) {
             tasksText = "No tienes tareas";
             send(chatId, tasksText);
         } else {
             tasksText = "Lista de las tareas:";
-            List<InlineKeyboardButton> row = new ArrayList<>();
-            for (Task task : tasks) {
+
+            InlineKeyboardMarkup activeTasksKeyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> activeRows = new ArrayList<>();
+
+            List<Task> activeTasks = tasks.stream().filter(item -> item.getIsDone() == false)
+                    .collect(Collectors.toList());
+
+            List<InlineKeyboardButton> activeRow = new ArrayList<>();
+            for (Task task : activeTasks) {
                 InlineKeyboardButton taskButton = new InlineKeyboardButton();
                 taskButton.setText(task.getName());
-                taskButton.setCallbackData("task-" + Integer.toString(task.getTaskId()));
-                row.add(taskButton);
+                taskButton.setCallbackData("activeTask-" + Integer.toString(task.getTaskId()));
+                activeRow.add(taskButton);
+                InlineKeyboardButton doneButton = new InlineKeyboardButton();
+                doneButton.setText("done");
+                doneButton.setCallbackData("setDone-" + Integer.toString(task.getTaskId()));
+                activeRow.add(doneButton);
             }
-            keyboardRows.add(row);
-            tasksKeyboardMarkup.setKeyboard(keyboardRows);
-            sendInlineKeyboard(chatId, tasksText, tasksKeyboardMarkup);
+            activeRows.add(activeRow);
+            activeTasksKeyboardMarkup.setKeyboard(activeRows);
+            sendInlineKeyboard(chatId, tasksText, activeTasksKeyboardMarkup);
+
+            tasksText = "Lista de tareas hechas";
+            InlineKeyboardMarkup doneTasksKeyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> doneRows = new ArrayList<>();
+
+            List<Task> doneTasks = tasks.stream().filter(item -> item.getIsDone() == true)
+                    .collect(Collectors.toList());
+
+            List<InlineKeyboardButton> doneRow = new ArrayList<>();
+            for (Task task : doneTasks) {
+                InlineKeyboardButton taskButton = new InlineKeyboardButton();
+                taskButton.setText(task.getName());
+                taskButton.setCallbackData("doneTask-" + Integer.toString(task.getTaskId()));
+                doneRow.add(taskButton);
+            }
+            doneRows.add(doneRow);
+            doneTasksKeyboardMarkup.setKeyboard(doneRows);
+            sendInlineKeyboard(chatId, tasksText, doneTasksKeyboardMarkup);
+
         }
     }
 
