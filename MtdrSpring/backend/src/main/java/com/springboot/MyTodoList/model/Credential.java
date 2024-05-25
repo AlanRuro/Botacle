@@ -4,8 +4,15 @@
  */
 package com.springboot.MyTodoList.model;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "credentials")
@@ -21,11 +28,17 @@ public class Credential {
     
     @Column(name = "password")
     private String password;
+
+    @Column(name = "is_logged", nullable = false)
+    private Integer is_logged = 0; // Inicializado a 0 por defecto
     
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
-    
+
+    public Credential() {
+        this.is_logged = 0; // Valor por defecto
+    }
 
     public int getCredential_id() {
         return credential_id;
@@ -55,16 +68,20 @@ public class Credential {
         return password;
     }
 
+    public Integer getIs_logged() {
+        return is_logged;
+    }
+
+    public void setIs_logged(Integer is_logged) {
+        this.is_logged = is_logged;
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
 
     @Override
     public String toString() {
-        return "Credential{" + "credential_id=" + credential_id + ", username=" + username + ", password=" + password + '}';
+        return "Credential{" + "credential_id=" + credential_id + ", username=" + username + ", password=" + password + ", is_logged=" + is_logged +'}';
     }
-    
-    
-    
 }
-

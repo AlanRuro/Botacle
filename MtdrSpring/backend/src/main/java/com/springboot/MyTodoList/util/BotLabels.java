@@ -7,11 +7,11 @@ public enum BotLabels {
 	ADD_ITEM("Add New Item"),
 	DONE("DONE"),
 	UNDO("UNDO"),
-        CANCEL("Cancel action"),
+    CANCEL("Cancel action"),
 	DELETE("DELETE"),
 	MY_TODO_LIST("MY TODO LIST"),
 	MY_EMPLOYEES_LIST("MY EMPLOYEES LIST"),
-        LOGIN("Login"),
+    LOGIN("Login"),
 	LOGOUT("Logout"),
 	DASH("-");
 

@@ -2,18 +2,18 @@ package com.springboot.MyTodoList.util;
 
 public enum BotMessages {
 	
-	HELLO_MYTODO_BOT("Hola! Soy un bot para que los empleados de Oracle puedan organizarse mejor!\nPara usarme por favor usa el comando /login."),
-        SUMMARY("Puedes usar estos comandos:\n/todolist para ver tus tareas\n/additem para agregar una tarea\n/logout para cerrar sesion"),
-	BOT_REGISTERED_STARTED("Bot registered and started succesfully!"),
-        LOGIN("Por favor, usa /login para iniciar sesión."),
-	ITEM_DONE("Item done! Select /todolist to return to the list of todo items, or /start to go to the main screen."), 
-	ITEM_UNDONE("Item undone! Select /todolist to return to the list of todo items, or /start to go to the main screen."), 
-	ITEM_DELETED("Item deleted! Select /todolist to return to the list of todo items, or /start to go to the main screen."),
+	HELLO_MYTODO_BOT("¡Hola! Soy un bot para que los empleados de Oracle puedan organizarse mejor."),
+    SUMMARY("Puedes usar estos comandos:\n/todolist - Ver tus tareas\n/additem - Agregar una tarea\n/logout - Cerrar sesión"),
+	BOT_REGISTERED_STARTED("¡Bot registrado y iniciado con éxito!"),
+    LOGIN("Por favor, usa /login para iniciar sesión."),
+	ITEM_DONE("¡Tarea completada! Usa /todolist para volver a la lista de tareas o /start para ir a la pantalla principal."), 
+	ITEM_UNDONE("¡Tarea marcada como pendiente! Usa /todolist para volver a la lista de tareas o /start para ir a la pantalla principal."), 
+	ITEM_DELETED("¡Tarea eliminada! Usa /todolist para volver a la lista de tareas o /start para ir a la pantalla principal."),
 	TYPE_NEW_TODO_ITEM("Ingresa el nombre de la tarea"),
-	NEW_ITEM_ADDED("New item added! Select /todolist to return to the list of todo items, or /start to go to the main screen."),
-        UNKNOWN_TEXT("Para usar este bot debe iniciar sesion con /login."),
-        NOT_MEMBER("No eres usuario"),
-	BYE("Bye! Select /start to resume!");
+	NEW_ITEM_ADDED("¡Nueva tarea añadida! Usa /todolist para volver a la lista de tareas o /start para ir a la pantalla principal."),
+    UNKNOWN_TEXT("No entiendo lo que quieres decir. Usa /start."),
+    NOT_MEMBER("No eres usuario autorizado."),
+	BYE("¡Adiós! Usa /start para continuar.");
 
 	private String message;
 
