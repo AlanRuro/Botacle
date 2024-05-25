@@ -1,40 +1,31 @@
 package com.springboot.MyTodoList.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.model.Task;
 import com.springboot.MyTodoList.service.AuthService;
-import com.springboot.MyTodoList.service.ChatSession;
 import com.springboot.MyTodoList.service.MemberService;
 import com.springboot.MyTodoList.service.TaskService;
 import com.springboot.MyTodoList.service.TaskSessionService;
 import com.springboot.MyTodoList.util.BotCommandFactory;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
 import com.springboot.MyTodoList.util.BotCommands;
 import com.springboot.MyTodoList.util.BotMessages;
-import com.springboot.MyTodoList.util.BotState;
-import java.util.HashMap;
-import java.util.Map;
-import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
 
@@ -42,42 +33,101 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private final TaskService taskService;
     private final TaskSessionService taskSessionService;
     private final MemberService memberService;
+    private final AuthService authService;
     private final String botName;
 
-    public ToDoItemBotController(String botToken, String botName, TaskService taskService, MemberService memberService, TaskSessionService taskSessionService) {
+    private Map<Long, MemberDto> loginSessions = new HashMap<>();
+
+    public ToDoItemBotController(String botToken, String botName, TaskService taskService, MemberService memberService, TaskSessionService taskSessionService, AuthService authService) {
         super(botToken);
         logger.info("Bot Token: " + botToken);
         logger.info("Bot name: " + botName);
         this.taskSessionService = taskSessionService;
         this.taskService = taskService;
         this.memberService = memberService;
+        this.authService = authService;
         this.botName = botName;
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-
         if (update.hasMessage() && update.getMessage().hasText()) {
-
             String messageTextFromTelegram = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
             long userId = update.getMessage().getFrom().getId();
 
-            if (getMember(userId) == null) {
-                send(chatId, "No eres miembro");
+            // Manejar comandos de inicio y cierre de sesión
+            if (messageTextFromTelegram.equals("/start")) {
+                handleStart(chatId, userId);
+            } else if (messageTextFromTelegram.equals("/login")) {
+                handleLoginCommand(chatId, userId);
+            } else if (messageTextFromTelegram.equals("/logout")) {
+                handleLogout(chatId, userId);
+            } else if (loginSessions.containsKey(chatId)) {
+                handleLoginProcess(chatId, userId, messageTextFromTelegram);
             } else {
                 handleReplies(chatId, userId, messageTextFromTelegram);
             }
-
         } else if (update.hasCallbackQuery()) {
-
             long chatId = update.getCallbackQuery().getMessage().getChatId();
             String callbackData = update.getCallbackQuery().getData();
             handleCallbacks(chatId, callbackData);
         }
     }
 
+    private void handleStart(long chatId, long userId) {
+        send(chatId, BotMessages.HELLO_MYTODO_BOT.getMessage());
+        if (authService.isUserLoggedIn(userId)) {
+            send(chatId, BotMessages.SUMMARY.getMessage());
+        } else {
+            send(chatId, BotMessages.LOGIN.getMessage());
+        }
+    }
+
+    private void handleLoginCommand(long chatId, long userId) {
+        if (authService.isUserLoggedIn(userId)) {
+            send(chatId, "Ya estás loggeado.");
+        } else {
+            send(chatId, "Por favor, proporciona tu nombre de usuario:");
+            loginSessions.put(chatId, new MemberDto());
+        }
+    }
+
+    private void handleLoginProcess(long chatId, long userId, String messageText) {
+        MemberDto memberDto = loginSessions.get(chatId);
+        if (memberDto.getUsername() == null) {
+            memberDto.setTelegramId(userId);
+            memberDto.setUsername(messageText);
+            send(chatId, "Ahora, por favor, proporciona tu contraseña:");
+        } else if (memberDto.getPassword() == null) {
+            memberDto.setPassword(messageText);
+            if (authService.login(memberDto)) {
+                send(chatId, "Inicio de sesión exitoso.");
+                send(chatId, BotMessages.SUMMARY.getMessage());
+                loginSessions.remove(chatId);
+            } else {
+                send(chatId, "Nombre de usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.");
+                loginSessions.remove(chatId);
+            }
+        }
+    }
+
+    private void handleLogout(long chatId, long userId) {
+        Member member = getMember(userId);
+        if (member != null) {
+            authService.logout(member);
+            send(chatId, "Sesión cerrada correctamente");
+        } else {
+            send(chatId, "No estás autenticado");
+        }
+    }
+
     private void handleReplies(long chatId, long userId, String message) {
+        if (!authService.isUserLoggedIn(userId)) {
+            send(chatId, "Por favor, inicia sesión primero usando el comando /login");
+            return;
+        }
+
         TaskDto taskSessionDto = taskSessionService.getTaskSession(chatId);
         if (taskSessionDto != null) {
             handleTaskSession(chatId, taskSessionDto, message);
@@ -88,14 +138,13 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleCallbacks(long chatId, String data) {
-        if (data.startsWith("activeTask-")) {
-            int taskId = Integer.parseInt(data.substring(11));
-            Task task = taskService.getTaskById(taskId);
-            if (task != null) {
-                send(chatId, task.toString());
-            }
-        } else if (data.startsWith("doneTask-")) {
-            int taskId = Integer.parseInt(data.substring(9));
+        if (!authService.isUserLoggedIn(chatId)) {
+            send(chatId, "Por favor, inicia sesión primero usando el comando /login");
+            return;
+        }
+
+        if (data.startsWith("task-")) {
+            int taskId = Integer.parseInt(data.substring(5));
             Task task = taskService.getTaskById(taskId);
             if (task != null) {
                 send(chatId, task.toString());
@@ -278,58 +327,4 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             logger.error(e.getLocalizedMessage(), e);
         }
     }
-
-    //--------
-//    
-//    // GET /todolist
-//    public List<Task> getAllToDoItems() {
-////		return taskService.findAll();
-//        return null;
-//    }
-//
-//    // GET BY ID /todolist/{id}
-//    public ResponseEntity<Task> getToDoItemById(@PathVariable int id) {
-//        try {
-//            ResponseEntity<Task> responseEntity = taskService.getItemById(id);
-//            return new ResponseEntity<>(responseEntity.getBody(), HttpStatus.OK);
-//        } catch (Exception e) {
-//            logger.error(e.getLocalizedMessage(), e);
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//    }
-//
-//    // PUT /todolist
-//    public ResponseEntity addToDoItem(@RequestBody TaskDto newTask) throws Exception {
-//        Task td = taskService.addTask(newTask);
-//        HttpHeaders responseHeaders = new HttpHeaders();
-//        responseHeaders.set("location", "" + td.getTaskId());
-//        responseHeaders.set("Access-Control-Expose-Headers", "location");
-//        // URI location = URI.create(""+td.getID())
-//
-//        return ResponseEntity.ok().headers(responseHeaders).build();
-//    }
-//
-//    // UPDATE /todolist/{id}
-//    public ResponseEntity updateToDoItem(@RequestBody TaskDto task, @PathVariable int id) {
-//        try {
-//            Task toDoItem1 = taskService.updateTask(id, task);
-//            System.out.println(toDoItem1.toString());
-//            return new ResponseEntity<>(toDoItem1, HttpStatus.OK);
-//        } catch (Exception e) {
-//            logger.error(e.getLocalizedMessage(), e);
-//            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-//        }
-//    }
-//
-//    // DELETE todolist/{id}
-//    public ResponseEntity<Boolean> deleteToDoItem(@PathVariable("id") int id) {
-//        Boolean flag = false;
-//        try {
-//            flag = taskService.deleteTask(id);
-//            return new ResponseEntity<>(flag, HttpStatus.OK);
-//        } catch (Exception e) {
-//            logger.error(e.getLocalizedMessage(), e);
-//            return new ResponseEntity<>(flag, HttpStatus.NOT_FOUND);
-//        }
-//    }
 }

@@ -4,11 +4,11 @@ public enum BotCommands {
 
 	START("/start"), 
 	HIDE("/hide"), 
-        LOGIN("/login"),
-        LOGOUT("/logout"),
+    LOGIN("/login"),
+    LOGOUT("/logout"),
 	TODO_LIST("/todolist"),
 	ADD_ITEM("/additem"),
-        CANCEL("/cancel"),
+    CANCEL("/cancel"),
 	EMPLOYEES_LIST("/employeeslist");
 
 	private String command;

@@ -1,15 +1,17 @@
 package com.springboot.MyTodoList.service;
 
 
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.model.Credential;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.repository.CredentialRepository;
 import com.springboot.MyTodoList.repository.MemberRepository;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
@@ -22,7 +24,7 @@ public class AuthService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-   public boolean areCredentialsValid(MemberDto memberDto) {        
+    public boolean areCredentialsValid(MemberDto memberDto) {        
         Optional<Member> member = memberRepository.findByTelegramId(memberDto.getTelegramId());
         if(member.isPresent()) {
             Member registeredMember = member.get();
@@ -36,11 +38,6 @@ public class AuthService {
         return false;        
     }
 
-//    public void registerMember(String username, String password) {
-//        String sql = "INSERT INTO members (username, password) VALUES (?, ?)";
-//        jdbcTemplate.update(sql, username, passwordEncoder.encode(password));
-//    }
-
     public boolean isMemberRegistered(long telegramId) {
         Optional<Member> member = memberRepository.findByTelegramId(telegramId);
         return member.isPresent();
@@ -53,6 +50,34 @@ public class AuthService {
         return false;
     }
 
+    public void updateLoginStatus(Member member, boolean isLogged) {
+        Optional<Credential> memberCredentials = credentialRepository.findByMember(member);
+        if (memberCredentials.isPresent()) {
+            Credential credentials = memberCredentials.get();
+            credentials.setIs_logged(isLogged ? 1 : 0);
+            credentialRepository.save(credentials);
+        }
+    }
 
-    
+    public boolean login(MemberDto memberDto) {
+        if (isMemberAuthenticated(memberDto)) {
+            Member member = memberRepository.findByTelegramId(memberDto.getTelegramId()).get();
+            updateLoginStatus(member, true);
+            return true;
+        }
+        return false;
+    }
+
+    public void logout(Member member) {
+        updateLoginStatus(member, false);
+    }
+
+    public boolean isUserLoggedIn(long telegramId) {
+        Optional<Member> member = memberRepository.findByTelegramId(telegramId);
+        if (member.isPresent()) {
+            Optional<Credential> credentials = credentialRepository.findByMember(member.get());
+            return credentials.isPresent() && credentials.get().getIs_logged() == 1;
+        }
+        return false;
+    }
 }
