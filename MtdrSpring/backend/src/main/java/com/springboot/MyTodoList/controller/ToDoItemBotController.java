@@ -1,40 +1,32 @@
 package com.springboot.MyTodoList.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.model.Task;
 import com.springboot.MyTodoList.service.AuthService;
-import com.springboot.MyTodoList.service.ChatSession;
 import com.springboot.MyTodoList.service.MemberService;
 import com.springboot.MyTodoList.service.TaskService;
 import com.springboot.MyTodoList.service.TaskSessionService;
 import com.springboot.MyTodoList.util.BotCommandFactory;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
 import com.springboot.MyTodoList.util.BotCommands;
 import com.springboot.MyTodoList.util.BotMessages;
-import com.springboot.MyTodoList.util.BotState;
-import java.util.HashMap;
-import java.util.Map;
-import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import java.util.stream.Collectors;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
 
@@ -56,18 +48,18 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-
         if (update.hasMessage() && update.getMessage().hasText()) {
-
             String messageTextFromTelegram = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
             long userId = update.getMessage().getFrom().getId();
 
-//            logger.info("userid: " + userId);
-            handleReplies(chatId, userId, messageTextFromTelegram);
-
+            // Manejar comandos de inicio y cierre de sesión
+            if (getMember(userId) == null) {
+                send(chatId, "No eres miembro");
+            } else {
+                handleReplies(chatId, userId, messageTextFromTelegram);
+            }
         } else if (update.hasCallbackQuery()) {
-
             long chatId = update.getCallbackQuery().getMessage().getChatId();
             String callbackData = update.getCallbackQuery().getData();
             handleCallbacks(chatId, callbackData);
@@ -85,11 +77,24 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleCallbacks(long chatId, String data) {
-        if (data.startsWith("task-")) {
-            int taskId = Integer.parseInt(data.substring(5));
+        if (data.startsWith("activeTask-")) {
+            int taskId = Integer.parseInt(data.substring(11));
             Task task = taskService.getTaskById(taskId);
             if (task != null) {
                 send(chatId, task.toString());
+            }
+        } else if (data.startsWith("doneTask-")) {
+            int taskId = Integer.parseInt(data.substring(9));
+            Task task = taskService.getTaskById(taskId);
+            if (task != null) {
+                send(chatId, task.toString());
+            }
+        } else if (data.startsWith("setDone-")) {
+            int taskId = Integer.parseInt(data.substring(8));
+            Task task = taskService.getTaskById(taskId);
+            if (task != null) {
+                task.setIsDone(true);
+                send(chatId, "Tarea hecha");
             }
         } else if (data.startsWith("taskSessionYes-")) {
             long id = Long.parseLong(data.substring(15));
@@ -169,23 +174,52 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         List<Task> tasks = taskService.getAllByMember(member);
 
         String tasksText;
-        InlineKeyboardMarkup tasksKeyboardMarkup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
+
         if (tasks.isEmpty()) {
             tasksText = "No tienes tareas";
             send(chatId, tasksText);
         } else {
             tasksText = "Lista de las tareas:";
-            List<InlineKeyboardButton> row = new ArrayList<>();
-            for (Task task : tasks) {
+
+            InlineKeyboardMarkup activeTasksKeyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> activeRows = new ArrayList<>();
+
+            List<Task> activeTasks = tasks.stream().filter(item -> item.getIsDone() == false)
+                    .collect(Collectors.toList());
+
+            List<InlineKeyboardButton> activeRow = new ArrayList<>();
+            for (Task task : activeTasks) {
                 InlineKeyboardButton taskButton = new InlineKeyboardButton();
                 taskButton.setText(task.getName());
-                taskButton.setCallbackData("task-" + Integer.toString(task.getId()));
-                row.add(taskButton);
+                taskButton.setCallbackData("activeTask-" + Integer.toString(task.getId()));
+                activeRow.add(taskButton);
+                InlineKeyboardButton doneButton = new InlineKeyboardButton();
+                doneButton.setText("done");
+                doneButton.setCallbackData("setDone-" + Integer.toString(task.getId()));
+                activeRow.add(doneButton);
             }
-            keyboardRows.add(row);
-            tasksKeyboardMarkup.setKeyboard(keyboardRows);
-            sendInlineKeyboard(chatId, tasksText, tasksKeyboardMarkup);
+            activeRows.add(activeRow);
+            activeTasksKeyboardMarkup.setKeyboard(activeRows);
+            sendInlineKeyboard(chatId, tasksText, activeTasksKeyboardMarkup);
+
+            tasksText = "Lista de tareas hechas";
+            InlineKeyboardMarkup doneTasksKeyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> doneRows = new ArrayList<>();
+
+            List<Task> doneTasks = tasks.stream().filter(item -> item.getIsDone() == true)
+                    .collect(Collectors.toList());
+
+            List<InlineKeyboardButton> doneRow = new ArrayList<>();
+            for (Task task : doneTasks) {
+                InlineKeyboardButton taskButton = new InlineKeyboardButton();
+                taskButton.setText(task.getName());
+                taskButton.setCallbackData("doneTask-" + Integer.toString(task.getId()));
+                doneRow.add(taskButton);
+            }
+            doneRows.add(doneRow);
+            doneTasksKeyboardMarkup.setKeyboard(doneRows);
+            sendInlineKeyboard(chatId, tasksText, doneTasksKeyboardMarkup);
+
         }
     }
 
@@ -233,58 +267,4 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             logger.error(e.getLocalizedMessage(), e);
         }
     }
-
-    //--------
-//    
-//    // GET /todolist
-//    public List<Task> getAllToDoItems() {
-////		return taskService.findAll();
-//        return null;
-//    }
-//
-//    // GET BY ID /todolist/{id}
-//    public ResponseEntity<Task> getToDoItemById(@PathVariable int id) {
-//        try {
-//            ResponseEntity<Task> responseEntity = taskService.getItemById(id);
-//            return new ResponseEntity<>(responseEntity.getBody(), HttpStatus.OK);
-//        } catch (Exception e) {
-//            logger.error(e.getLocalizedMessage(), e);
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//    }
-//
-//    // PUT /todolist
-//    public ResponseEntity addToDoItem(@RequestBody TaskDto newTask) throws Exception {
-//        Task td = taskService.addTask(newTask);
-//        HttpHeaders responseHeaders = new HttpHeaders();
-//        responseHeaders.set("location", "" + td.getTaskId());
-//        responseHeaders.set("Access-Control-Expose-Headers", "location");
-//        // URI location = URI.create(""+td.getID())
-//
-//        return ResponseEntity.ok().headers(responseHeaders).build();
-//    }
-//
-//    // UPDATE /todolist/{id}
-//    public ResponseEntity updateToDoItem(@RequestBody TaskDto task, @PathVariable int id) {
-//        try {
-//            Task toDoItem1 = taskService.updateTask(id, task);
-//            System.out.println(toDoItem1.toString());
-//            return new ResponseEntity<>(toDoItem1, HttpStatus.OK);
-//        } catch (Exception e) {
-//            logger.error(e.getLocalizedMessage(), e);
-//            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-//        }
-//    }
-//
-//    // DELETE todolist/{id}
-//    public ResponseEntity<Boolean> deleteToDoItem(@PathVariable("id") int id) {
-//        Boolean flag = false;
-//        try {
-//            flag = taskService.deleteTask(id);
-//            return new ResponseEntity<>(flag, HttpStatus.OK);
-//        } catch (Exception e) {
-//            logger.error(e.getLocalizedMessage(), e);
-//            return new ResponseEntity<>(flag, HttpStatus.NOT_FOUND);
-//        }
-//    }
 }
