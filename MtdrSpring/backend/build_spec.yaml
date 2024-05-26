@@ -7,7 +7,7 @@ failImmediatelyOnError: true
 steps:
   -  type: Command
      name: compile
-     command: mvn Compile
+     command: mvn -f /MtdrSpring/backend/ compile
     
       
         
