@@ -34,7 +34,7 @@ public class Team {
     }
 
     // Getter and setter for team_id
-    public long getId() {
+    public int getId() {
         return id;
     }
 

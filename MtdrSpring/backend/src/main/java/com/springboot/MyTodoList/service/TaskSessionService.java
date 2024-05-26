@@ -4,6 +4,7 @@ import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.model.TaskSession;
+import com.springboot.MyTodoList.repository.MemberRepository;
 import com.springboot.MyTodoList.repository.TaskRepository;
 import com.springboot.MyTodoList.repository.TaskSessionRepository;
 import java.util.Optional;
@@ -23,6 +24,9 @@ public class TaskSessionService {
 
     @Autowired
     private TaskSessionRepository taskSessionRepository;
+    
+    @Autowired
+    private MemberRepository memberRepository;
 
     public TaskSessionService() {
 
@@ -40,13 +44,17 @@ public class TaskSessionService {
         }
     }
 
-    public TaskDto createEmptyTask(Long chatId, Member member) {
-        TaskDto newTaskDto = new TaskDto();
+    public TaskDto createEmptyTask(Long chatId, MemberDto memberDto) {
         TaskSession newTask = new TaskSession();
-        newTaskDto.setMember(member);
+        TaskDto newTaskDto = new TaskDto();
         newTask.setChatId(chatId);
-        newTask.setMember(member);
-        taskSessionRepository.save(newTask);
+        Optional<Member> memberOpt = memberRepository.findByTelegramId(memberDto.getTelegramId());
+        if (memberOpt.isPresent()) {
+            Member member = memberOpt.get();
+            newTask.setMember(member);
+            taskSessionRepository.save(newTask);
+            newTaskDto.setMemberId(member.getId());
+        }
         return newTaskDto;
     }
 
@@ -59,7 +67,7 @@ public class TaskSessionService {
             taskDto.setDescription(taskSession.getDescription());
             taskDto.setStartDate(taskSession.getStartDate());
             taskDto.setEndDate(taskSession.getEndDate());
-            taskDto.setMember(taskSession.getMember());
+            taskDto.setMemberId(taskSession.getMember().getId());
             return taskDto;
         }
         return null;

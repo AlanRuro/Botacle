@@ -1,10 +1,12 @@
 package com.springboot.MyTodoList.service;
 
-
+import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.model.Task;
+import com.springboot.MyTodoList.repository.MemberRepository;
 import com.springboot.MyTodoList.repository.TaskRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,53 +18,78 @@ public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
 
-    public List<Task> getAllByMember(Member member){
-        List<Task> tasks = taskRepository.findAllByMember(member);
-        return tasks;
+    @Autowired
+    private MemberRepository memberRepository;
+
+    public List<TaskDto> getAllByMember(MemberDto memberDto) {
+        Optional<Member> memberOpt = memberRepository.findByTelegramId(memberDto.getTelegramId());
+        if (memberOpt.isPresent()) {
+            Member member = memberOpt.get();
+            List<Task> tasks = taskRepository.findAllByMember(member);
+            List<TaskDto> tasksDto = new ArrayList<>();
+            for (Task task : tasks) {
+                TaskDto taskDto = toDto(task);
+                tasksDto.add(taskDto);
+            }
+            return tasksDto;
+        }
+        return null;
+
     }
 
-    public Task getTaskById(int id){
+    public TaskDto getTaskById(int id) {
         Optional<Task> taskData = taskRepository.findById(id);
-        if (taskData.isPresent()){
-            return taskData.get();
-        } else{
+        if (taskData.isPresent()) {
+            Task task = taskData.get();
+            return toDto(task);
+        } else {
             return null;
         }
     }
 
-    public Task addTask(TaskDto newTask){
-        Task task = new Task();
-        task.setName(newTask.getName());
-        task.setDescription(newTask.getDescription());
-        task.setIsDone(false);
-        task.setMember(newTask.getMember());
-
-        return taskRepository.save(task);
+    public void addTask(TaskDto newTaskDto) {
+        Task task = toEntity(newTaskDto);
+        taskRepository.save(task);
     }
 
-    public boolean deleteTask(int id){
-        try{
+    public boolean deleteTask(int id) {
+        try {
             taskRepository.deleteById(id);
             return true;
-        } catch(Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
-    
-    public Task updateTask(int id, TaskDto td){
-        Optional<Task> taskData = taskRepository.findById(id);
-        if(taskData.isPresent()){
-            Task task = taskData.get();
-            task.setId(id);
-            task.setName(td.getName());
-            task.setDescription(td.getDescription());
-            task.setStartDate(td.getStartDate());
-            task.setEndDate(td.getEndDate());
-            task.setMember(td.getMember());
-            task.setIsDone(td.getIsDone());
-            return taskRepository.save(task);
-        }else{
-            return null;
+
+    public void updateTask(TaskDto taskDto) {
+        Optional<Task> taskData = taskRepository.findById(taskDto.getTaskId());
+        if (taskData.isPresent()) {
+            Task task = toEntity(taskDto);
+            taskRepository.save(task);
         }
+    }
+
+    private TaskDto toDto(Task task) {
+        TaskDto taskDto = new TaskDto();
+        taskDto.setTaskId(task.getId());
+        taskDto.setName(task.getName());
+        taskDto.setDescription(task.getDescription());
+        taskDto.setStartDate(task.getStartDate());
+        taskDto.setEndDate(task.getEndDate());
+        taskDto.setMemberId(task.getMember().getId());
+        taskDto.setIsDone(task.getIsDone());
+        return taskDto;
+    }
+
+    private Task toEntity(TaskDto taskDto) {
+        Task task = new Task();
+        task.setId(taskDto.getTaskId());
+        task.setName(taskDto.getName());
+        task.setDescription(taskDto.getDescription());
+        task.setStartDate(taskDto.getStartDate());
+        task.setEndDate(taskDto.getEndDate());
+        task.setIsDone(taskDto.getIsDone());
+        task.setMember(memberRepository.getById(taskDto.getMemberId()));
+        return task;
     }
 }

@@ -1,14 +1,13 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.springboot.MyTodoList.dto;
 
-import com.springboot.MyTodoList.model.Member;
 import java.util.Date;
 
 
 public class TaskDto {
+    
+    private Integer taskId;
+    
+    private Integer taskSessionId;
     
     private String name;
 
@@ -22,13 +21,32 @@ public class TaskDto {
     
     private boolean isFilled;
     
-    private Member member;
+    private Integer memberId;
 
     public TaskDto() {
+        this.taskId = null;
+        this.taskSessionId = null;
         this.name = "";
         this.description = "";
         this.isDone = false;
         this.isFilled = false;
+        this.memberId = null;
+    }
+
+    public Integer getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Integer taskId) {
+        this.taskId = taskId;
+    }
+
+    public Integer getTaskSessionId() {
+        return taskSessionId;
+    }
+
+    public void setTaskSessionId(Integer taskSessionId) {
+        this.taskSessionId = taskSessionId;
     }
     
     
@@ -81,12 +99,12 @@ public class TaskDto {
         this.isFilled = isFilled;
     }
 
-    public Member getMember() {
-        return member;
+    public Integer getMemberId() {
+        return memberId;
     }
 
-    public void setMember(Member member) {
-        this.member = member;
+    public void setMemberId(Integer memberId) {
+        this.memberId = memberId;
     }
     
 }

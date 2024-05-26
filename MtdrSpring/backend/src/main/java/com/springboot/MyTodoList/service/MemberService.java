@@ -1,10 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.springboot.MyTodoList.service;
 
-
+import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.repository.MemberRepository;
 import java.util.Optional;
@@ -15,25 +11,37 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MemberService {
-    
+
     @Autowired
     private MemberRepository memberRepository;
-    
-    public Member getMemberById(int id) {
+
+    public MemberDto getMemberById(int id) {
         Optional<Member> taskData = memberRepository.findById(id);
-        if (taskData.isPresent()){
-            return taskData.get();
-        } else{
+        if (taskData.isPresent()) {
+            Member member = taskData.get();
+            return toDto(member);
+        }
+        return null;
+    }
+
+    public MemberDto getMemberByTelegramId(long id) {
+        Optional<Member> memberData = memberRepository.findByTelegramId(id);
+        if (memberData.isPresent()) {
+            Member member = memberData.get();
+            return toDto(member);
+        } else {
             return null;
         }
     }
-    
-    public Member getMemberByTelegramId(long id) {
-        Optional<Member> memberData = memberRepository.findByTelegramId(id);
-        if (memberData.isPresent()){
-            return memberData.get();
-        } else{
-            return null;
-        }
+
+    private MemberDto toDto(Member member) {
+        MemberDto memberDto = new MemberDto();
+        memberDto.setName(member.getName());
+        memberDto.setLastName(member.getLastName());
+        memberDto.setEmail(member.getEmail());
+        memberDto.setIsManager(member.getIsManager());
+        memberDto.setTeamId(member.getTeam().getId());
+        memberDto.setTelegramId(member.getTelegramId());
+        return memberDto;
     }
 }

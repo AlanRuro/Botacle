@@ -53,7 +53,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             long chatId = update.getMessage().getChatId();
             long userId = update.getMessage().getFrom().getId();
 
-            // Manejar comandos de inicio y cierre de sesión
             if (getMember(userId) == null) {
                 send(chatId, "No eres miembro");
             } else {
@@ -71,29 +70,29 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         if (taskSessionDto != null) {
             handleTaskSession(chatId, taskSessionDto, message);
         } else {
-            Member member = getMember(userId);
-            handleAuthenticatedCommands(chatId, member, message);
+            MemberDto memberDto = getMember(userId);
+            handleAuthenticatedCommands(chatId, memberDto, message);
         }
     }
 
     private void handleCallbacks(long chatId, String data) {
         if (data.startsWith("activeTask-")) {
             int taskId = Integer.parseInt(data.substring(11));
-            Task task = taskService.getTaskById(taskId);
-            if (task != null) {
-                send(chatId, task.toString());
+            TaskDto taskDto = taskService.getTaskById(taskId);
+            if (taskDto != null) {
+                send(chatId, taskDto.toString());
             }
         } else if (data.startsWith("doneTask-")) {
             int taskId = Integer.parseInt(data.substring(9));
-            Task task = taskService.getTaskById(taskId);
-            if (task != null) {
-                send(chatId, task.toString());
+            TaskDto taskDto = taskService.getTaskById(taskId);
+            if (taskDto != null) {
+                send(chatId, taskDto.toString());
             }
         } else if (data.startsWith("setDone-")) {
             int taskId = Integer.parseInt(data.substring(8));
-            Task task = taskService.getTaskById(taskId);
-            if (task != null) {
-                task.setIsDone(true);
+            TaskDto taskDto = taskService.getTaskById(taskId);
+            if (taskDto != null) {
+                taskDto.setIsDone(true);
                 send(chatId, "Tarea hecha");
             }
         } else if (data.startsWith("taskSessionYes-")) {
@@ -111,15 +110,15 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
-    private void handleAuthenticatedCommands(long chatId, Member member, String message) {
+    private void handleAuthenticatedCommands(long chatId, MemberDto memberDto, String message) {
         if (message.equals(BotCommands.START.getCommand())) {
             replyToStart(chatId);
         } else if (message.equals(BotCommands.TODO_LIST.getCommand())) {
-            replyToListToDo(chatId, member);
+            replyToListToDo(chatId, memberDto);
         } else if (message.equals(BotCommands.ADD_ITEM.getCommand())) {
-            replyToAddTask(chatId, member);
+            replyToAddTask(chatId, memberDto);
         } else if (message.equals(BotCommands.CANCEL.getCommand())) {
-            cancelAction(chatId, member);
+            cancelAction(chatId);
         } else {
             replyToUnkownText(chatId);
         }
@@ -170,8 +169,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         send(chatId, BotMessages.SUMMARY.getMessage());
     }
 
-    private void replyToListToDo(long chatId, Member member) {
-        List<Task> tasks = taskService.getAllByMember(member);
+    private void replyToListToDo(long chatId, MemberDto member) {
+        List<TaskDto> tasks = taskService.getAllByMember(member);
 
         String tasksText;
 
@@ -184,18 +183,18 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             InlineKeyboardMarkup activeTasksKeyboardMarkup = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> activeRows = new ArrayList<>();
 
-            List<Task> activeTasks = tasks.stream().filter(item -> item.getIsDone() == false)
+            List<TaskDto> activeTasks = tasks.stream().filter(item -> item.getIsDone() == false)
                     .collect(Collectors.toList());
 
             List<InlineKeyboardButton> activeRow = new ArrayList<>();
-            for (Task task : activeTasks) {
+            for (TaskDto task : activeTasks) {
                 InlineKeyboardButton taskButton = new InlineKeyboardButton();
                 taskButton.setText(task.getName());
-                taskButton.setCallbackData("activeTask-" + Integer.toString(task.getId()));
+                taskButton.setCallbackData("activeTask-" + Integer.toString(task.getTaskId()));
                 activeRow.add(taskButton);
                 InlineKeyboardButton doneButton = new InlineKeyboardButton();
                 doneButton.setText("done");
-                doneButton.setCallbackData("setDone-" + Integer.toString(task.getId()));
+                doneButton.setCallbackData("setDone-" + Integer.toString(task.getTaskId()));
                 activeRow.add(doneButton);
             }
             activeRows.add(activeRow);
@@ -206,14 +205,14 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             InlineKeyboardMarkup doneTasksKeyboardMarkup = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> doneRows = new ArrayList<>();
 
-            List<Task> doneTasks = tasks.stream().filter(item -> item.getIsDone() == true)
+            List<TaskDto> doneTasks = tasks.stream().filter(item -> item.getIsDone() == true)
                     .collect(Collectors.toList());
 
             List<InlineKeyboardButton> doneRow = new ArrayList<>();
-            for (Task task : doneTasks) {
+            for (TaskDto task : doneTasks) {
                 InlineKeyboardButton taskButton = new InlineKeyboardButton();
                 taskButton.setText(task.getName());
-                taskButton.setCallbackData("doneTask-" + Integer.toString(task.getId()));
+                taskButton.setCallbackData("doneTask-" + Integer.toString(task.getTaskId()));
                 doneRow.add(taskButton);
             }
             doneRows.add(doneRow);
@@ -223,17 +222,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
-    private void replyToAddTask(long chatId, Member member) {
+    private void replyToAddTask(long chatId, MemberDto memberDto) {
         send(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage());
-        taskSessionService.createEmptyTask(chatId, member);
+        taskSessionService.createEmptyTask(chatId, memberDto);
     }
 
-    private void cancelAction(long chatId, Member member) {
+    private void cancelAction(long chatId) {
         taskSessionService.deleteTaskSession(chatId);
         send(chatId, "Accion cancelada");
     }
 
-    private Member getMember(long userId) {
+    private MemberDto getMember(long userId) {
         return memberService.getMemberByTelegramId(userId);
     }
 
