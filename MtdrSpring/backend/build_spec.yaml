@@ -7,7 +7,7 @@ failImmediatelyOnError: true
 steps:
   -  type: Command
      name: compile
-     command: mvn -f /MtdrSpring/backend/ compile
+     command: mvn -f /workspace/Botacle/MtdrSpring/backend/pom.xml compile
     
       
         
