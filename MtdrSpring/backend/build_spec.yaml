@@ -6,18 +6,21 @@ failImmediatelyOnError: true
 
 steps:
   - type: Command
-    name: "Install the latest Oracle GraalVM for JDK 20 - JDK and Native Image"
+    name: Install the latest Oracle GraalVM for JDK 20 - JDK and Native Image
     command: |
       yum -y install graalvm-20-native-image
   
   - type: Command
-    name: "Set the PATH here"
+    name: Set the PATH here
     command: |
       export PATH=$JAVA_HOME/bin:$PATH  
     
   - type: Command
-    name: compile
-    command: mvn -f /workspace/Botacle/MtdrSpring/backend/pom.xml compile
+    name: Build
+    command: |
+      cd /workspace/Botacle/MtdrSpring/backend/
+      chmod +x *.sh
+      source build.sh
     
 env:
   variables:
