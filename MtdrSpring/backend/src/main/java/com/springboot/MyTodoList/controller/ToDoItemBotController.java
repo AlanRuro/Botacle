@@ -17,9 +17,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
-import com.springboot.MyTodoList.model.Member;
-import com.springboot.MyTodoList.model.Task;
-import com.springboot.MyTodoList.service.AuthService;
 import com.springboot.MyTodoList.service.MemberService;
 import com.springboot.MyTodoList.service.TaskService;
 import com.springboot.MyTodoList.service.TaskSessionService;
@@ -93,6 +90,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             TaskDto taskDto = taskService.getTaskById(taskId);
             if (taskDto != null) {
                 taskDto.setIsDone(true);
+                taskService.updateTask(taskDto);
                 send(chatId, "Tarea hecha");
             }
         } else if (data.startsWith("taskSessionYes-")) {
