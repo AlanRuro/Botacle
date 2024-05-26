@@ -1,0 +1,13 @@
+version: 0.1
+component: build
+timeoutInSeconds: 100
+shell: bash
+failImmediatelyOnError: true
+
+steps:
+  -  type: Command
+     name: compile
+     command: mvn Compile
+    
+      
+        
