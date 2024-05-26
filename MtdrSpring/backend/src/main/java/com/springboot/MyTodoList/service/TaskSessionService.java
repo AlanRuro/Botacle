@@ -5,10 +5,8 @@ import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.model.TaskSession;
 import com.springboot.MyTodoList.repository.MemberRepository;
-import com.springboot.MyTodoList.repository.TaskRepository;
 import com.springboot.MyTodoList.repository.TaskSessionRepository;
 import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
