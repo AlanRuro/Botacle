@@ -65,6 +65,7 @@ public class TaskService {
         Optional<Task> taskData = taskRepository.findById(taskDto.getTaskId());
         if (taskData.isPresent()) {
             Task task = toEntity(taskDto);
+            task.setId(taskDto.getTaskId());
             taskRepository.save(task);
         }
     }
@@ -83,7 +84,6 @@ public class TaskService {
 
     private Task toEntity(TaskDto taskDto) {
         Task task = new Task();
-        task.setId(taskDto.getTaskId());
         task.setName(taskDto.getName());
         task.setDescription(taskDto.getDescription());
         task.setStartDate(taskDto.getStartDate());
