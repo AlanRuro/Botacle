@@ -93,10 +93,10 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             }
         } else if (data.startsWith("taskSessionYes-")) {
             long id = Long.parseLong(data.substring(15));
-            TaskDto task = taskSessionService.getTaskSession(id);
-            if (task != null) {
+            TaskDto taskDto = taskSessionService.getTaskSession(id);
+            if (taskDto != null) {
                 taskSessionService.confirmTaskSession(id);
-                taskService.addTask(task);
+                taskService.addTask(taskDto);
                 send(chatId, "Tarea agregada");
             }
         } else if (data.startsWith("taskSessionNo-")) {
