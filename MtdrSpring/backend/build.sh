@@ -2,7 +2,6 @@
 
 export IMAGE_NAME=todolistapp-springboot
 export IMAGE_VERSION=0.1
-export DOCKER_REGISTRY=mx-queretaro-1.ocir.io/axcioc1wifb3/reacttodo/gw5ok
 
 
 if [ -z "$DOCKER_REGISTRY" ]; then
