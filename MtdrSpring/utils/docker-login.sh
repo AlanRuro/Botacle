@@ -9,7 +9,7 @@ TOKEN_ID=$(oci iam auth-token list --user-id "$USER_ID" --query "data[?descripti
 
 # Check if TOKEN_ID is not empty
 if [ -n "$TOKEN_ID" ]; then
-  echo "Found auth token with description '$TOKEN_DESCRIPTION'.
+  echo "Found auth token with description '$TOKEN_DESCRIPTION'."
 
   # Delete the auth token
   oci iam auth-token delete --user-id "$USER_ID" --auth-token-id "$TOKEN_ID" --force
