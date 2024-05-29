@@ -7,8 +7,6 @@ import com.springboot.MyTodoList.model.TaskSession;
 import com.springboot.MyTodoList.repository.MemberRepository;
 import com.springboot.MyTodoList.repository.TaskSessionRepository;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 
@@ -17,8 +15,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TaskSessionService {
-
-    private static final Logger logger = LoggerFactory.getLogger(TaskSessionService.class); // Eliminar
 
     @Autowired
     private TaskSessionRepository taskSessionRepository;
@@ -85,7 +81,6 @@ public class TaskSessionService {
         Optional<TaskSession> taskSessionOpt = taskSessionRepository.getByChatIdNotFilled(chatId);
         if (taskSessionOpt.isPresent()) {
             TaskSession taskSession = taskSessionOpt.get();
-            logger.info("Session: " + taskSession.getId());
             Integer id = taskSession.getId();
             taskSessionRepository.deleteById(id);
         }
