@@ -41,7 +41,7 @@ steps:
     command: |
       BuildServiceVersion=`echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7`
       echo $BuildServiceVersion
-      docker build -t $IMAGE_NAME .
+      docker build -t $IMAGE_NAME /workspace/Botacle/MtdrSpring/backend/
         
 
 outputArtifacts:
