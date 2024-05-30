@@ -34,7 +34,7 @@ steps:
 
   - type: Command
     name: Check
-    command: ls -la target/
+    command: ls -la /workspace/Botacle/MtdrSpring/backend/target/
 
   - type: Command
     name: Dockerize
@@ -47,7 +47,7 @@ steps:
 outputArtifacts:
   - name: todoArtifact
     type: BINARY
-    location: /workspace/Botacle/MtdrSpring/backend/target/MyTodoList.jar
+    location: /workspace/Botacle/MtdrSpring/backend/target/MyTodoList-0.0.1-SNAPSHOT.jar
 
   - name: todoDockerImage
     type: DOCKER_IMAGE
