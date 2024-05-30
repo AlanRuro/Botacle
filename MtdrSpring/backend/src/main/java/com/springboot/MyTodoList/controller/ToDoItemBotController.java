@@ -96,6 +96,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             TaskDto taskDto = taskService.getTaskById(taskId);
             if (taskDto != null) {
                 send(chatId, taskDto.toString());
+                sendEditMenu(chatId, taskDto);
             }
         }
     }
@@ -145,6 +146,24 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             send(chatId, "Tarea hecha");
         }
     }
+
+    private void sendEditMenu(long chatId, TaskDto taskDto) {
+        InlineKeyboardMarkup editKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton nameButton = new InlineKeyboardButton();
+        nameButton.setText("Editar nombre");
+        nameButton.setCallbackData("EditName-" + taskDto.getTaskId());
+        InlineKeyboardButton descButton = new InlineKeyboardButton();
+        descButton.setText("Editar descripcion");
+        descButton.setCallbackData("EditDesc-" + taskDto.getTaskId());
+        row.add(nameButton);
+        row.add(descButton);
+        keyboardRows.add(row);
+        editKeyboardMarkup.setKeyboard(keyboardRows);
+        sendInlineKeyboard(chatId, "Editar tarea", editKeyboardMarkup);
+    }
+
 
     private void handleAuthenticatedCommands(long chatId, MemberDto memberDto, String message) {
         if (message.equals(BotCommands.START.getCommand())) {
