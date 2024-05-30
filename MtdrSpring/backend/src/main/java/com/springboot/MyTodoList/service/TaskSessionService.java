@@ -65,11 +65,13 @@ public class TaskSessionService {
         Optional<TaskSession> taskSessionOpt = taskSessionRepository.getByChatIdNotFilled(chatId);
         if (taskSessionOpt.isPresent()) {
             TaskSession taskSession = taskSessionOpt.get();
+            taskDto.setTaskSessionId(taskSession.getId());
             taskDto.setName(taskSession.getName());
             taskDto.setDescription(taskSession.getDescription());
             taskDto.setStartDate(taskSession.getStartDate());
             taskDto.setEndDate(taskSession.getEndDate());
             taskDto.setMemberId(taskSession.getMember().getId());
+            taskDto.setIsEdit(taskSession.getIsEdit());
             return taskDto;
         }
         return null;
