@@ -7,6 +7,7 @@ import com.springboot.MyTodoList.model.TaskSession;
 import com.springboot.MyTodoList.repository.MemberRepository;
 import com.springboot.MyTodoList.repository.TaskSessionRepository;
 import java.util.Optional;
+import java.time.LocalDate;
 
 
 
@@ -49,6 +50,9 @@ public class TaskSessionService {
             taskSessionRepository.save(newTask);
             newTaskDto.setIsEdit(isEdit);
             newTaskDto.setMemberId(member.getId());
+
+            newTask.setStartDate(LocalDate.of(2000, 8, 4)); // Placeholder for dates
+            newTask.setEndDate(LocalDate.of(2000, 9, 4)); // Placeholder for dates
         }
         return newTaskDto;
     }
