@@ -32,6 +32,9 @@ public class TaskSession {
     @Column(name = "chat_id")
     private Long chatId;
 
+    @Column(name = "is_edit")
+    private boolean isEdit;
+
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
@@ -44,11 +47,12 @@ public class TaskSession {
         this.endDate = null;
         this.isDone = false;
         this.isFilled = false;
+        this.isEdit = false;
         this.chatId = null;
     }
 
     // Constructor con todos los campos
-    public TaskSession(int id, String name, String description, boolean isDone, Date startDate, Date endDate, Long chatId, Member member) {
+    public TaskSession(int id, String name, String description, boolean isDone, Date startDate, Date endDate, Long chatId, boolean isEdit ,Member member) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -56,6 +60,7 @@ public class TaskSession {
         this.startDate = startDate;
         this.endDate = endDate;
         this.chatId = chatId;
+        this.isEdit = isEdit;
         this.member = member;
     }
 
@@ -131,9 +136,17 @@ public class TaskSession {
         this.member = member;
     }
 
+    public boolean getIsEdit() {
+        return isEdit;
+    }  
+    
+    public void setIsEdit(boolean isEdit) {
+        this.isEdit = isEdit;
+    } 
+
     @Override
     public String toString() {
-        return "TaskSession{" + "id=" + id + ", name=" + name + ", description=" + description + ", isDone=" + isDone + ", startDate=" + startDate + ", endDate=" + endDate + ", isFilled=" + isFilled + ", chatId=" + chatId + '}';
+        return "TaskSession{" + "id=" + id + ", name=" + name + ", description=" + description + ", isDone=" + isDone + ", startDate=" + startDate + ", endDate=" + endDate + ", isFilled=" + isFilled + ", chatId=" + chatId + ", isEdit=" + isEdit +'}';
     } 
     
     
