@@ -63,7 +63,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void handleReplies(long chatId, long userId, String message) {
         TaskDto taskSessionDto = taskSessionService.getTaskSession(chatId);
         if (taskSessionDto != null) {
-            logger.info("Task session: " + taskSessionDto.getTaskSessionId());
             handleTaskSession(chatId, taskSessionDto, message);
         } else {
             MemberDto memberDto = getMember(userId);
@@ -181,8 +180,9 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 
     private void handleTaskSession(long chatId, TaskDto newTaskSession, String text) {
+        logger.info("isEdit? " + newTaskSession.getIsEdit());
         if (newTaskSession.getIsEdit()) {
-            handleTaskSessionEdit(chatId, newTaskSession, text);;
+            handleTaskSessionEdit(chatId, newTaskSession, text);
         }else{
            handleTaskSessionAdd(chatId, newTaskSession, text); 
         }
