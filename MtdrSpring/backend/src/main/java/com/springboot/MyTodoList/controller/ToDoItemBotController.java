@@ -122,10 +122,23 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         if (taskDto == null) {
             return;
         }
+        MemberDto memberDto = memberService.getMemberById(taskDto.getMemberId());
         if (data.startsWith("Name-")) {
-            
+            send(chatId, "Ingrese nombre actualizado:");
+            TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, memberDto, true);
+            newTaskSession.setName(null);
+            newTaskSession.setDescription(taskDto.getDescription());
+            newTaskSession.setStartDate(taskDto.getStartDate());
+            newTaskSession.setEndDate(taskDto.getEndDate());
+            taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Desc-")) {
-            
+            send(chatId, "Ingrese descripcion actualizada:");
+            TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, memberDto, true);
+            newTaskSession.setName(taskDto.getName());
+            newTaskSession.setDescription(null);
+            newTaskSession.setStartDate(taskDto.getStartDate());
+            newTaskSession.setEndDate(taskDto.getEndDate());
+            taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Done-")) {
             taskDto.setIsDone(true);
             taskService.updateTask(taskDto);
@@ -147,14 +160,23 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
-    private void handleTaskSession(long chatId, TaskDto newTask, String text) {
-        if (newTask.getName() == null) {
-            newTask.setName(text);
+
+    private void handleTaskSession(long chatId, TaskDto newTaskSession, String text) {
+        if (newTaskSession.getIsEdit()) {
+            handleTaskSessionEdit(chatId, newTaskSession, text);;
+        }else{
+           handleTaskSessionAdd(chatId, newTaskSession, text); 
+        }
+    }
+
+    private void handleTaskSessionAdd(long chatId, TaskDto newTaskSession, String text) {
+        if (newTaskSession.getName() == null) {
+            newTaskSession.setName(text);
             send(chatId, "Ingresa la descripcion");
-            taskSessionService.updateTask(chatId, newTask);
-        } else if (newTask.getDescription() == null) {
-            newTask.setDescription(text);
-            taskSessionService.updateTask(chatId, newTask);
+            taskSessionService.updateTask(chatId, newTaskSession);
+        } else if (newTaskSession.getDescription() == null) {
+            newTaskSession.setDescription(text);
+            taskSessionService.updateTask(chatId, newTaskSession);
 
             send(chatId, "Nueva tarea:");
             InlineKeyboardMarkup infoKeyboardMarkup = new InlineKeyboardMarkup();
@@ -170,8 +192,23 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             row.add(noButton);
             keyboardRows.add(row);
             infoKeyboardMarkup.setKeyboard(keyboardRows);
-            sendInlineKeyboard(chatId, newTask.getName() + " " + newTask.getDescription(), infoKeyboardMarkup);
+            sendInlineKeyboard(chatId, newTaskSession.getName() + " " + newTaskSession.getDescription(), infoKeyboardMarkup);
         }
+    }
+
+    private void handleTaskSessionEdit(long chatId, TaskDto newTaskSession, String text) {
+        String updateText = "";
+        if (newTaskSession.getName() == null) {
+            newTaskSession.setName(text);
+            updateText = "Nombre actualizado con éxito";
+        } else if (newTaskSession.getDescription() == null) {
+            newTaskSession.setDescription(text);
+            updateText = "Descripción actualizada con éxito";
+        }
+        taskSessionService.updateTask(chatId, newTaskSession);
+        taskSessionService.confirmTaskSession(chatId);
+        taskService.updateTask(newTaskSession);
+        send(chatId, updateText);
     }
 
     @Override
@@ -238,7 +275,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private void replyToAddTask(long chatId, MemberDto memberDto) {
         send(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage());
-        taskSessionService.createEmptyTask(chatId, memberDto);
+        taskSessionService.createEmptyTask(chatId, memberDto, false);
     }
 
     private void cancelAction(long chatId) {

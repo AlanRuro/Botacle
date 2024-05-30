@@ -20,6 +20,8 @@ public class TaskDto {
     private Date endDate;
     
     private boolean isFilled;
+
+    private boolean isEdit;
     
     private Integer memberId;
 
@@ -30,6 +32,7 @@ public class TaskDto {
         this.description = "";
         this.isDone = false;
         this.isFilled = false;
+        this.isEdit = false;
         this.memberId = null;
     }
 
@@ -97,6 +100,14 @@ public class TaskDto {
 
     public void setIsFilled(boolean isFilled) {
         this.isFilled = isFilled;
+    }
+
+    public boolean getIsEdit() {
+        return isEdit;
+    }
+
+    public void setIsEdit(boolean isEdit) {
+        this.isEdit = isEdit;
     }
 
     public Integer getMemberId() {
