@@ -4,6 +4,15 @@ timeoutInSeconds: 1000
 shell: bash
 failImmediatelyOnError: true
 
+env:
+  variables:
+    "JAVA_HOME" : "/usr/lib64/graalvm/graalvm-java20"
+    "IMAGE_NAME": "todolistapp-springboot"
+    "DOCKER_REGISTRY": "mx-queretaro-1.ocir.io/axcioc1wifb3/reacttodo/gw5ok"
+
+  exportedVariables:
+    - BuildServiceVersion
+
 steps:
   - type: Command
     name: Install the latest Oracle GraalVM for JDK 20 - JDK and Native Image
@@ -16,16 +25,31 @@ steps:
       export PATH=$JAVA_HOME/bin:$PATH  
 
   - type: Command
-    name: Docker login
-    command: source /workspace/Botacle/MtdrSpring/utils/docker-login.sh
-    
+    name: Compile
+    command: mvn compile
+
   - type: Command
-    name: Build
+    name: Package
+    command: mvn clean package spring-boot:repackage
+
+  - type: Command
+    name: Check
+    command: ls -la target/
+
+  - type: Command
+    name: Dockerize
     command: |
-      cd /workspace/Botacle/MtdrSpring/backend/
-      chmod +x *.sh
-      source build.sh
-    
-env:
-  variables:
-    "JAVA_HOME" : "/usr/lib64/graalvm/graalvm-java20"
+      BuildServiceVersion=`echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7`
+      echo $BuildServiceVersion
+      docker build -t $IMAGE_NAME .
+        
+
+outputArtifacts:
+  - name: todoArtifact
+    type: BINARY
+    location: /workspace/Botacle/MtdrSpring/backend/target/MyTodoList.jar
+
+  - name: todoDockerImage
+    type: DOCKER_IMAGE
+    location: $IMAGE_NAME
+
