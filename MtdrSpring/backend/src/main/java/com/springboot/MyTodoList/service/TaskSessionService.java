@@ -47,12 +47,15 @@ public class TaskSessionService {
         if (memberOpt.isPresent()) {
             Member member = memberOpt.get();
             newTask.setMember(member);
+            newTask.setIsEdit(isEdit);
             taskSessionRepository.save(newTask);
             newTaskDto.setIsEdit(isEdit);
             newTaskDto.setMemberId(member.getId());
 
             newTask.setStartDate(LocalDate.of(2000, 8, 4)); // Placeholder for dates
             newTask.setEndDate(LocalDate.of(2000, 9, 4)); // Placeholder for dates
+            newTaskDto.setStartDate(LocalDate.of(2000, 8, 4)); // Placeholder for dates
+            newTaskDto.setEndDate(LocalDate.of(2000, 9, 4)); // Placeholder for dates
         }
         return newTaskDto;
     }
