@@ -26,11 +26,11 @@ steps:
 
   - type: Command
     name: Compile
-    command: mvn compile
+    command: mvn -f /workspace/Botacle/MtdrSpring/backend/pom.xml compile
 
   - type: Command
     name: Package
-    command: mvn clean package spring-boot:repackage
+    command: mvn -f /workspace/Botacle/MtdrSpring/backend/pom.xml clean package spring-boot:repackage
 
   - type: Command
     name: Check
