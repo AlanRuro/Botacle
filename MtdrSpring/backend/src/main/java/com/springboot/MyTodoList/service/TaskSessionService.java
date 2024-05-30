@@ -38,7 +38,7 @@ public class TaskSessionService {
         }
     }
 
-    public TaskDto createEmptyTask(Long chatId, MemberDto memberDto) {
+    public TaskDto createEmptyTask(Long chatId, MemberDto memberDto, boolean isEdit) {
         TaskSession newTask = new TaskSession();
         TaskDto newTaskDto = new TaskDto();
         newTask.setChatId(chatId);
@@ -47,6 +47,7 @@ public class TaskSessionService {
             Member member = memberOpt.get();
             newTask.setMember(member);
             taskSessionRepository.save(newTask);
+            newTaskDto.setIsEdit(isEdit);
             newTaskDto.setMemberId(member.getId());
         }
         return newTaskDto;
