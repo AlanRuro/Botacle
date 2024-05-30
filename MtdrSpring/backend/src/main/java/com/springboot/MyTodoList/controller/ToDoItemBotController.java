@@ -63,6 +63,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void handleReplies(long chatId, long userId, String message) {
         TaskDto taskSessionDto = taskSessionService.getTaskSession(chatId);
         if (taskSessionDto != null) {
+            logger.info("Task session: " + taskSessionDto.getTaskSessionId());
             handleTaskSession(chatId, taskSessionDto, message);
         } else {
             MemberDto memberDto = getMember(userId);
@@ -89,14 +90,13 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             int taskId = Integer.parseInt(data.substring(7));
             TaskDto taskDto = taskService.getTaskById(taskId);
             if (taskDto != null) {
-                send(chatId, taskDto.toString());
+                sendEditMenu(chatId, taskDto);
             }
         } else if (data.startsWith("Done-")) {
             int taskId = Integer.parseInt(data.substring(5));
             TaskDto taskDto = taskService.getTaskById(taskId);
             if (taskDto != null) {
                 send(chatId, taskDto.toString());
-                sendEditMenu(chatId, taskDto);
             }
         }
     }
@@ -216,6 +216,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleTaskSessionEdit(long chatId, TaskDto newTaskSession, String text) {
+        logger.info("Editing task session");
         String updateText = "";
         if (newTaskSession.getName() == null) {
             newTaskSession.setName(text);
