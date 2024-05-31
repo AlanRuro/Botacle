@@ -9,6 +9,10 @@ env:
     "JAVA_HOME" : "/usr/lib64/graalvm/graalvm-java20"
     "IMAGE_NAME": "todolistapp-springboot"
     "DOCKER_REGISTRY": "mx-queretaro-1.ocir.io/axcioc1wifb3/reacttodo/gw5ok"
+    "TODO_PDB_NAME": "reacttodogw5ok"
+    "UI_USERNAME": "team34"
+    "OCI_REGION": "mx-queretaro-1"
+
 
   exportedVariables:
     - BuildServiceVersion
@@ -42,6 +46,27 @@ steps:
       BuildServiceVersion=`echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7`
       echo $BuildServiceVersion
       docker build -t $IMAGE_NAME /workspace/Botacle/MtdrSpring/backend/
+
+  - type: Command
+    name: Set up deployment
+    command: |
+      echo "Creating springboot deplyoment and service"
+      export CURRENTTIME=$( date '+%F_%H:%M:%S' )
+      echo CURRENTTIME is $CURRENTTIME  ...this will be appended to generated deployment yaml
+      cp /workspace/Botacle/MtdrSpring/backend/src/main/resources/todolistapp-springboot.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
+
+      sed -i "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
+
+      sed -e "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-${CURRENTTIME}.yaml > /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-${CURRENTTIME}.yaml
+      mv -- /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
+      sed -e "s|%TODO_PDB_NAME%|${TODO_PDB_NAME}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-${CURRENTTIME}.yaml > /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-${CURRENTTIME}.yaml
+      mv -- /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
+      sed -e "s|%OCI_REGION%|${OCI_REGION}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-${CURRENTTIME}.yaml > /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml
+      mv -- /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
+      sed -e "s|%UI_USERNAME%|${UI_USERNAME}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-${CURRENTTIME}.yaml > /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml
+      mv -- /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
+
+    
         
 
 outputArtifacts:
@@ -52,4 +77,8 @@ outputArtifacts:
   - name: todoDockerImage
     type: DOCKER_IMAGE
     location: todolistapp-springboot
+
+  - name: todoDeployment
+    type: BINARY
+    location: /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
 
