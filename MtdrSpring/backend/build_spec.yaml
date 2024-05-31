@@ -51,5 +51,5 @@ outputArtifacts:
 
   - name: todoDockerImage
     type: DOCKER_IMAGE
-    location: $IMAGE_NAME
+    location: todolistapp-springboot
 
