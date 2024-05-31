@@ -16,6 +16,7 @@ env:
 
   exportedVariables:
     - BuildServiceVersion
+    - CURRENTTIME
 
 steps:
   - type: Command
