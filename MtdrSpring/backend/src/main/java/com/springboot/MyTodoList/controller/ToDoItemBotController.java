@@ -134,6 +134,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             newTaskSession.setDescription(taskDto.getDescription());
             newTaskSession.setStartDate(taskDto.getStartDate());
             newTaskSession.setEndDate(taskDto.getEndDate());
+            newTaskSession.setTaskId(taskId);
             taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Desc-")) {
             send(chatId, "Ingrese descripcion actualizada:");
@@ -142,6 +143,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             newTaskSession.setDescription(null);
             newTaskSession.setStartDate(taskDto.getStartDate());
             newTaskSession.setEndDate(taskDto.getEndDate());
+            newTaskSession.setTaskId(taskId);
             taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Done-")) {
             taskDto.setIsDone(true);

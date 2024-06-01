@@ -80,6 +80,7 @@ public class TaskSessionService {
             taskDto.setStartDate(taskSession.getStartDate());
             taskDto.setEndDate(taskSession.getEndDate());
             taskDto.setMemberId(taskSession.getMember().getId());
+            taskDto.setIsEdit(taskSession.getIsEdit());
 
             if (taskSession.getTask() != null) {
                 taskDto.setTaskId(taskSession.getTask().getId());
