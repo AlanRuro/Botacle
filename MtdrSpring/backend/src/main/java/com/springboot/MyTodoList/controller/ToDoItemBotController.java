@@ -2,6 +2,7 @@ package com.springboot.MyTodoList.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,6 @@ import com.springboot.MyTodoList.service.TaskSessionService;
 import com.springboot.MyTodoList.util.BotCommandFactory;
 import com.springboot.MyTodoList.util.BotCommands;
 import com.springboot.MyTodoList.util.BotMessages;
-import java.util.stream.Collectors;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
 
@@ -72,7 +72,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleCallbacks(long chatId, String data) {
-
         if (data.startsWith("Task")) {
             data = data.substring(4);
             handleTaskCallback(chatId, data);
@@ -82,6 +81,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         } else if (data.startsWith("Edit")) {
             data = data.substring(4);
             handleTaskEdit(chatId, data);
+        } else if (data.startsWith("Employee-")) {
+            handleEmployeeCallback(chatId, data);
         }
     }
 
@@ -169,7 +170,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         sendInlineKeyboard(chatId, "Editar tarea", editKeyboardMarkup);
     }
 
-
     private void handleAuthenticatedCommands(long chatId, MemberDto memberDto, String message) {
         if (message.equals(BotCommands.START.getCommand())) {
             replyToStart(chatId);
@@ -177,6 +177,12 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             replyToListToDo(chatId, memberDto);
         } else if (message.equals(BotCommands.ADD_ITEM.getCommand())) {
             replyToAddTask(chatId, memberDto);
+        } else if (message.equals(BotCommands.EMPLOYEES_LIST.getCommand())) {
+            if (isUserManager(memberDto.getTelegramId())) {
+                replyToEmployeesList(chatId, memberDto.getTelegramId());
+            } else {
+                send(chatId, "No tienes permisos para ver esta lista.");
+            }
         } else if (message.equals(BotCommands.CANCEL.getCommand())) {
             cancelAction(chatId);
         } else {
@@ -184,12 +190,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
-
     private void handleTaskSession(long chatId, TaskDto newTaskSession, String text) {
         if (newTaskSession.getIsEdit()) {
-            handleTaskSessionEdit(chatId, newTaskSession, text);;
-        }else{
-           handleTaskSessionAdd(chatId, newTaskSession, text); 
+            handleTaskSessionEdit(chatId, newTaskSession, text);
+        } else {
+            handleTaskSessionAdd(chatId, newTaskSession, text);
         }
     }
 
@@ -308,8 +313,39 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         send(chatId, "Accion cancelada");
     }
 
+    private void replyToEmployeesList(long chatId, long managerId) {
+        List<MemberDto> employees = memberService.getEmployeesByManagerId(managerId);
+        if (employees.isEmpty()) {
+            send(chatId, "No tienes empleados.");
+        } else {
+            sendEmployeeList(chatId, employees);
+        }
+    }
+    
+    private void sendEmployeeList(long chatId, List<MemberDto> employees) {
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        
+        for (MemberDto employee : employees) {
+            List<InlineKeyboardButton> row = new ArrayList<>();
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            button.setText(employee.getName());
+            button.setCallbackData("Employee-" + employee.getTelegramId());
+            row.add(button);
+            rows.add(row);
+        }
+        
+        keyboardMarkup.setKeyboard(rows);
+        sendInlineKeyboard(chatId, "Lista de empleados:", keyboardMarkup);
+    }
+    
+
     private MemberDto getMember(long userId) {
         return memberService.getMemberByTelegramId(userId);
+    }
+
+    private boolean isUserManager(long userId) {
+        return memberService.isManager(userId);
     }
 
     private void send(long chatId, String text) {
@@ -342,4 +378,16 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             logger.error(e.getLocalizedMessage(), e);
         }
     }
+
+    private void handleEmployeeCallback(long chatId, String data) {
+        long employeeId = Long.parseLong(data.split("-")[1]);
+        List<TaskDto> tasks = taskService.getTasksByMemberId(employeeId);
+        
+        if (tasks.isEmpty()) {
+            send(chatId, "El empleado no tiene tareas.");
+        } else {
+            sendTasksList(chatId, "Tareas del empleado:", tasks, false);
+        }
+    }
+    
 }

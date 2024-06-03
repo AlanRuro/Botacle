@@ -1,16 +1,19 @@
 package com.springboot.MyTodoList.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.model.Task;
 import com.springboot.MyTodoList.repository.MemberRepository;
 import com.springboot.MyTodoList.repository.TaskRepository;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class TaskService {
@@ -34,7 +37,6 @@ public class TaskService {
             return tasksDto;
         }
         return null;
-
     }
 
     public TaskDto getTaskById(int id) {
@@ -72,6 +74,16 @@ public class TaskService {
         }
     }
 
+    public List<TaskDto> getTasksByMemberId(long telegramId) {
+        Optional<Member> memberOpt = memberRepository.findByTelegramId(telegramId);
+        if (memberOpt.isPresent()) {
+            Member member = memberOpt.get();
+            List<Task> tasks = taskRepository.findAllByMember(member);
+            return tasks.stream().map(this::toDto).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
+    }
+
     private TaskDto toDto(Task task) {
         TaskDto taskDto = new TaskDto();
         taskDto.setTaskId(task.getId());
@@ -82,7 +94,7 @@ public class TaskService {
         taskDto.setMemberId(task.getMember().getId());
         taskDto.setIsDone(task.getIsDone());
         return taskDto;
-    } 
+    }
 
     private Task toEntity(TaskDto taskDto) {
         Task task = new Task();
