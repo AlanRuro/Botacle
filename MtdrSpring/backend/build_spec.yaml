@@ -69,5 +69,5 @@ outputArtifacts:
 
   - name: todoDeployment
     type: BINARY
-    location: /workspace/Botacle/MtdrSpring/backend/target/clases/todolistapp-springboot.yaml
+    location: /workspace/Botacle/MtdrSpring/backend/target/classes/todolistapp-springboot.yaml
 
