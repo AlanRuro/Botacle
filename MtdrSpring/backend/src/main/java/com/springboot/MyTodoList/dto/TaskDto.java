@@ -1,6 +1,6 @@
 package com.springboot.MyTodoList.dto;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 
 public class TaskDto {
@@ -15,11 +15,13 @@ public class TaskDto {
 
     private boolean isDone;
 
-    private Date startDate;
+    private LocalDate startDate;
 
-    private Date endDate;
+    private LocalDate endDate;
     
     private boolean isFilled;
+
+    private boolean isEdit;
     
     private Integer memberId;
 
@@ -30,6 +32,7 @@ public class TaskDto {
         this.description = "";
         this.isDone = false;
         this.isFilled = false;
+        this.isEdit = false;
         this.memberId = null;
     }
 
@@ -75,19 +78,19 @@ public class TaskDto {
         this.isDone = isDone;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 
@@ -97,6 +100,14 @@ public class TaskDto {
 
     public void setIsFilled(boolean isFilled) {
         this.isFilled = isFilled;
+    }
+
+    public boolean getIsEdit() {
+        return isEdit;
+    }
+
+    public void setIsEdit(boolean isEdit) {
+        this.isEdit = isEdit;
     }
 
     public Integer getMemberId() {

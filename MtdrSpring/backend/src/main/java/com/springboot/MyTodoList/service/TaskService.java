@@ -47,9 +47,11 @@ public class TaskService {
         }
     }
 
-    public void addTask(TaskDto newTaskDto) {
+    public TaskDto addTask(TaskDto newTaskDto) {
         Task task = toEntity(newTaskDto);
-        taskRepository.save(task);
+        Task newTask = taskRepository.save(task);
+        TaskDto taskDto = toDto(newTask);
+        return taskDto;
     }
 
     public boolean deleteTask(int id) {
@@ -80,7 +82,7 @@ public class TaskService {
         taskDto.setMemberId(task.getMember().getId());
         taskDto.setIsDone(task.getIsDone());
         return taskDto;
-    }
+    } 
 
     private Task toEntity(TaskDto taskDto) {
         Task task = new Task();

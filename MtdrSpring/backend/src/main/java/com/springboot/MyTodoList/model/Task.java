@@ -2,8 +2,7 @@ package com.springboot.MyTodoList.model;
 
 
 import javax.persistence.*;
-import java.util.Date;
-
+import java.time.LocalDate;
 @Entity
 @Table(name = "tasks")
 public class Task {
@@ -23,10 +22,10 @@ public class Task {
     private boolean isDone;
 
     @Column(name = "start_date")
-    private Date startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private Date endDate;
+    private LocalDate endDate;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
@@ -37,7 +36,7 @@ public class Task {
     }
 
     // Constructor con todos los campos
-    public Task(int id, String name, String description, boolean isDone, Date startDate, Date endDate, Member member) {
+    public Task(int id, String name, String description, boolean isDone, LocalDate startDate, LocalDate endDate, Member member) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -80,19 +79,19 @@ public class Task {
         this.isDone = isDone;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 

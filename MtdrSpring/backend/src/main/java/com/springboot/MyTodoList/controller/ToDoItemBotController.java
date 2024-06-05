@@ -63,6 +63,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void handleReplies(long chatId, long userId, String message) {
         TaskDto taskSessionDto = taskSessionService.getTaskSession(chatId);
         if (taskSessionDto != null) {
+            logger.info("Task session: " + taskSessionDto.getTaskSessionId());
             handleTaskSession(chatId, taskSessionDto, message);
         } else {
             MemberDto memberDto = getMember(userId);
@@ -89,7 +90,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             int taskId = Integer.parseInt(data.substring(7));
             TaskDto taskDto = taskService.getTaskById(taskId);
             if (taskDto != null) {
-                send(chatId, taskDto.toString());
+                sendEditMenu(chatId, taskDto);
             }
         } else if (data.startsWith("Done-")) {
             int taskId = Integer.parseInt(data.substring(5));
@@ -105,8 +106,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             long id = Long.parseLong(data.substring(8));
             TaskDto taskDto = taskSessionService.getTaskSession(id);
             if (taskDto != null) {
+                TaskDto newTaskDto = taskService.addTask(taskDto);
+                logger.info("Task Session ID: " + taskDto.getTaskSessionId() + " Task ID: " + newTaskDto.getTaskId());
+                taskDto.setTaskId(newTaskDto.getTaskId());
+                taskSessionService.updateTask(chatId, taskDto);
                 taskSessionService.confirmTaskSession(id);
-                taskService.addTask(taskDto);
                 send(chatId, "Tarea agregada");
             }
         } else if (data.startsWith("TaskNo-")) {
@@ -122,16 +126,49 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         if (taskDto == null) {
             return;
         }
+        MemberDto memberDto = memberService.getMemberById(taskDto.getMemberId());
         if (data.startsWith("Name-")) {
-            
+            send(chatId, "Ingrese nombre actualizado:");
+            TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, memberDto, true);
+            newTaskSession.setName(null);
+            newTaskSession.setDescription(taskDto.getDescription());
+            newTaskSession.setStartDate(taskDto.getStartDate());
+            newTaskSession.setEndDate(taskDto.getEndDate());
+            newTaskSession.setTaskId(taskId);
+            taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Desc-")) {
-            
+            send(chatId, "Ingrese descripcion actualizada:");
+            TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, memberDto, true);
+            newTaskSession.setName(taskDto.getName());
+            newTaskSession.setDescription(null);
+            newTaskSession.setStartDate(taskDto.getStartDate());
+            newTaskSession.setEndDate(taskDto.getEndDate());
+            newTaskSession.setTaskId(taskId);
+            taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Done-")) {
             taskDto.setIsDone(true);
             taskService.updateTask(taskDto);
             send(chatId, "Tarea hecha");
         }
     }
+
+    private void sendEditMenu(long chatId, TaskDto taskDto) {
+        InlineKeyboardMarkup editKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton nameButton = new InlineKeyboardButton();
+        nameButton.setText("Editar nombre");
+        nameButton.setCallbackData("EditName-" + taskDto.getTaskId());
+        InlineKeyboardButton descButton = new InlineKeyboardButton();
+        descButton.setText("Editar descripcion");
+        descButton.setCallbackData("EditDesc-" + taskDto.getTaskId());
+        row.add(nameButton);
+        row.add(descButton);
+        keyboardRows.add(row);
+        editKeyboardMarkup.setKeyboard(keyboardRows);
+        sendInlineKeyboard(chatId, "Editar tarea", editKeyboardMarkup);
+    }
+
 
     private void handleAuthenticatedCommands(long chatId, MemberDto memberDto, String message) {
         if (message.equals(BotCommands.START.getCommand())) {
@@ -147,14 +184,23 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
-    private void handleTaskSession(long chatId, TaskDto newTask, String text) {
-        if (newTask.getName() == null) {
-            newTask.setName(text);
+
+    private void handleTaskSession(long chatId, TaskDto newTaskSession, String text) {
+        if (newTaskSession.getIsEdit()) {
+            handleTaskSessionEdit(chatId, newTaskSession, text);;
+        }else{
+           handleTaskSessionAdd(chatId, newTaskSession, text); 
+        }
+    }
+
+    private void handleTaskSessionAdd(long chatId, TaskDto newTaskSession, String text) {
+        if (newTaskSession.getName() == null) {
+            newTaskSession.setName(text);
             send(chatId, "Ingresa la descripcion");
-            taskSessionService.updateTask(chatId, newTask);
-        } else if (newTask.getDescription() == null) {
-            newTask.setDescription(text);
-            taskSessionService.updateTask(chatId, newTask);
+            taskSessionService.updateTask(chatId, newTaskSession);
+        } else if (newTaskSession.getDescription() == null) {
+            newTaskSession.setDescription(text);
+            taskSessionService.updateTask(chatId, newTaskSession);
 
             send(chatId, "Nueva tarea:");
             InlineKeyboardMarkup infoKeyboardMarkup = new InlineKeyboardMarkup();
@@ -170,8 +216,24 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             row.add(noButton);
             keyboardRows.add(row);
             infoKeyboardMarkup.setKeyboard(keyboardRows);
-            sendInlineKeyboard(chatId, newTask.getName() + " " + newTask.getDescription(), infoKeyboardMarkup);
+            sendInlineKeyboard(chatId, newTaskSession.getName() + " " + newTaskSession.getDescription(), infoKeyboardMarkup);
         }
+    }
+
+    private void handleTaskSessionEdit(long chatId, TaskDto newTaskSession, String text) {
+        logger.info("Editing task session");
+        String updateText = "";
+        if (newTaskSession.getName() == null) {
+            newTaskSession.setName(text);
+            updateText = "Nombre actualizado con éxito";
+        } else if (newTaskSession.getDescription() == null) {
+            newTaskSession.setDescription(text);
+            updateText = "Descripción actualizada con éxito";
+        }
+        taskSessionService.updateTask(chatId, newTaskSession);
+        taskSessionService.confirmTaskSession(chatId);
+        taskService.updateTask(newTaskSession);
+        send(chatId, updateText);
     }
 
     @Override
@@ -238,7 +300,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private void replyToAddTask(long chatId, MemberDto memberDto) {
         send(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage());
-        taskSessionService.createEmptyTask(chatId, memberDto);
+        taskSessionService.createEmptyTask(chatId, memberDto, false);
     }
 
     private void cancelAction(long chatId) {
