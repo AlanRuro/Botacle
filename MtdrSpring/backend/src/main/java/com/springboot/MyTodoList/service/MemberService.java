@@ -4,6 +4,9 @@ import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.repository.MemberRepository;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +17,19 @@ public class MemberService {
     private MemberRepository memberRepository;
 
     public MemberDto getMemberById(int id) {
-        Optional<Member> taskData = memberRepository.findById(id);
-        if (taskData.isPresent()) {
-            Member member = taskData.get();
+        Optional<Member> memberOpt = memberRepository.findById(id);
+        if (memberOpt.isPresent()) {
+            Member member = memberOpt.get();
             return toDto(member);
+        }
+        return null;
+    }
+
+    public List<MemberDto> getEmployeesByTelegramId(long telegramId) {
+        MemberDto manager = getMemberByTelegramId(telegramId);
+        if (manager != null && manager.getIsManager()) {
+            List<Member> employees = memberRepository.findByTeamId(manager.getTeamId());
+            return employees.stream().map(this::toDto).collect(Collectors.toList());
         }
         return null;
     }

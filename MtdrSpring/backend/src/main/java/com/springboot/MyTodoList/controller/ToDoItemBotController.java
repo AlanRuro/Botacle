@@ -77,10 +77,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             replyToAddTask(chatId, getMember(chatId));
         } else if (data.equals(BotCommands.CANCEL.getCommand())) {
             cancelAction(chatId);
-        }
-
-
-        if (data.startsWith("Task")) {
+        } else if (data.startsWith("Task")) {
             data = data.substring(4);
             handleTaskCallback(chatId, data);
         } else if (data.startsWith("Session")) {
@@ -89,6 +86,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         } else if (data.startsWith("Edit")) {
             data = data.substring(4);
             handleTaskEdit(chatId, data);
+        } else if (data.startsWith("Employee-")) {
+            handleEmployeeCallback(chatId, data);
         }
     }
 
@@ -124,6 +123,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             long id = Long.parseLong(data.substring(7));
             taskSessionService.deleteTaskSession(id);
             send(chatId, "Tarea eliminada ❌");
+        }
+    }
+
+    private void handleEmployeeCallback(long chatId, String data) {
+        long telegramId = Long.parseLong(data.split("-")[1]);
+        List<TaskDto> tasks = taskService.getTasksByTelegramId(telegramId);
+
+        if (tasks.isEmpty()) {
+            send(chatId, "El empleado no tiene tareas.");
+        } else {
+            sendTasksList(chatId, "Tareas del empleado:", tasks, false);
         }
     }
 
@@ -212,6 +222,12 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             replyToListToDo(chatId, memberDto);
         } else if (message.equals(BotCommands.ADD_ITEM.getCommand())) {
             replyToAddTask(chatId, memberDto);
+        } else if (message.equals(BotCommands.EMPLOYEES_LIST.getCommand())) {
+            if (memberDto.getIsManager()) {
+                replyToEmployeesList(chatId, memberDto.getTelegramId());
+            } else {
+                send(chatId, "No tienes permisos para ver esta lista.");
+            }
         } else if (message.equals(BotCommands.CANCEL.getCommand())) {
             cancelAction(chatId);
         } else {
@@ -360,6 +376,32 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void cancelAction(long chatId) {
         taskSessionService.deleteTaskSession(chatId);
         send(chatId, "Accion cancelada");
+    }
+
+    private void replyToEmployeesList(long chatId, long telegramId) {
+        List<MemberDto> employees = memberService.getEmployeesByTelegramId(telegramId);
+        if (employees.isEmpty()) {
+            send(chatId, "No tienes empleados.");
+        } else {
+            sendEmployeeList(chatId, employees);
+        }
+    }
+
+    private void sendEmployeeList(long chatId, List<MemberDto> employees) {
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+        for (MemberDto employee : employees) {
+            List<InlineKeyboardButton> row = new ArrayList<>();
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            button.setText(employee.getName());
+            button.setCallbackData("Employee-" + employee.getTelegramId());
+            row.add(button);
+            rows.add(row);
+        }
+
+        keyboardMarkup.setKeyboard(rows);
+        sendInlineKeyboard(chatId, "Lista de empleados:", keyboardMarkup);
     }
 
     private MemberDto getMember(long userId) {

@@ -43,7 +43,7 @@ public class MemberDto {
         this.email = email;
     }
 
-    public boolean isIsManager() {
+    public boolean getIsManager() {
         return isManager;
     }
 
