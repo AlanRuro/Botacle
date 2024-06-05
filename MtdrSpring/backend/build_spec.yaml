@@ -19,6 +19,13 @@ env:
 
 steps:
   - type: Command
+    name: Undeploy
+    command: |
+      echo delete frontend deployment and service...
+      kubectl -n mtdrworkshop delete deployment todolistapp-springboot-deployment
+      kubectl -n mtdrworkshop delete service todolistapp-springboot-service
+  
+  - type: Command
     name: Install the latest Oracle GraalVM for JDK 20 - JDK and Native Image
     command: |
       yum -y install graalvm-20-native-image
