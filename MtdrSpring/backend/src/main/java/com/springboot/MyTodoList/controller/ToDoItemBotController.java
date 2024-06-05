@@ -2,7 +2,6 @@ package com.springboot.MyTodoList.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -12,7 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.service.MemberService;
@@ -24,7 +22,6 @@ import com.springboot.MyTodoList.util.BotMessages;
 import java.util.stream.Collectors;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
-
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
     private final TaskService taskService;
     private final TaskSessionService taskSessionService;
@@ -47,11 +44,14 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             String messageTextFromTelegram = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
             long userId = update.getMessage().getFrom().getId();
-
             if (getMember(userId) == null) {
                 send(chatId, "No eres miembro");
+                SetMyCommands commands = BotCommandFactory.getCommandsForNoMember(chatId);
+                sendCommandsToBot(commands);
             } else {
                 handleReplies(chatId, userId, messageTextFromTelegram);
+                SetMyCommands commands = BotCommandFactory.getCommandsForEmployee(chatId);
+                sendCommandsToBot(commands);
             }
         } else if (update.hasCallbackQuery()) {
             long chatId = update.getCallbackQuery().getMessage().getChatId();
@@ -71,6 +71,14 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleCallbacks(long chatId, String data) {
+        if (data.equals(BotCommands.TODO_LIST.getCommand())) {
+            replyToListToDo(chatId, getMember(chatId));
+        } else if (data.equals(BotCommands.ADD_ITEM.getCommand())) {
+            replyToAddTask(chatId, getMember(chatId));
+        } else if (data.equals(BotCommands.CANCEL.getCommand())) {
+            cancelAction(chatId);
+        }
+
 
         if (data.startsWith("Task")) {
             data = data.substring(4);
@@ -105,14 +113,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             long id = Long.parseLong(data.substring(8));
             TaskDto taskDto = taskSessionService.getTaskSession(id);
             if (taskDto != null) {
+                TaskDto newTaskDto = taskService.addTask(taskDto);
+                logger.info("Task Session ID: " + taskDto.getTaskSessionId() + " Task ID: " + newTaskDto.getTaskId());
+                taskDto.setTaskId(newTaskDto.getTaskId());
+                taskSessionService.updateTask(chatId, taskDto);
                 taskSessionService.confirmTaskSession(id);
-                taskService.addTask(taskDto);
-                send(chatId, "Tarea agregada");
+                send(chatId, "Tarea agregada ✅");
             }
         } else if (data.startsWith("TaskNo-")) {
             long id = Long.parseLong(data.substring(7));
             taskSessionService.deleteTaskSession(id);
-            send(chatId, "Tarea eliminada");
+            send(chatId, "Tarea eliminada ❌");
         }
     }
 
@@ -124,20 +135,22 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
         MemberDto memberDto = memberService.getMemberById(taskDto.getMemberId());
         if (data.startsWith("Name-")) {
-            send(chatId, "Ingrese nombre actualizado:");
+            send(chatId, "Ingrese el nuevo nombre:");
             TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, memberDto, true);
             newTaskSession.setName(null);
             newTaskSession.setDescription(taskDto.getDescription());
             newTaskSession.setStartDate(taskDto.getStartDate());
             newTaskSession.setEndDate(taskDto.getEndDate());
+            newTaskSession.setTaskId(taskId);
             taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Desc-")) {
-            send(chatId, "Ingrese descripcion actualizada:");
+            send(chatId, "Ingrese la nueva descripción:");
             TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, memberDto, true);
             newTaskSession.setName(taskDto.getName());
             newTaskSession.setDescription(null);
             newTaskSession.setStartDate(taskDto.getStartDate());
             newTaskSession.setEndDate(taskDto.getEndDate());
+            newTaskSession.setTaskId(taskId);
             taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Done-")) {
             taskDto.setIsDone(true);
@@ -149,20 +162,48 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void sendEditMenu(long chatId, TaskDto taskDto) {
         InlineKeyboardMarkup editKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
-        List<InlineKeyboardButton> row = new ArrayList<>();
+    
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
         InlineKeyboardButton nameButton = new InlineKeyboardButton();
-        nameButton.setText("Editar nombre");
+        nameButton.setText("Editar nombre ✏️");
         nameButton.setCallbackData("EditName-" + taskDto.getTaskId());
         InlineKeyboardButton descButton = new InlineKeyboardButton();
-        descButton.setText("Editar descripcion");
+        descButton.setText("Editar descripción 💬");
         descButton.setCallbackData("EditDesc-" + taskDto.getTaskId());
-        row.add(nameButton);
-        row.add(descButton);
-        keyboardRows.add(row);
+        row1.add(nameButton);
+        row1.add(descButton);
+    
+        List<InlineKeyboardButton> row2 = new ArrayList<>();
+        InlineKeyboardButton cancelButton = new InlineKeyboardButton();
+        cancelButton.setText("Cancelar ❌");
+        cancelButton.setCallbackData(BotCommands.CANCEL.getCommand());
+        row2.add(cancelButton);
+    
+        keyboardRows.add(row1);
+        keyboardRows.add(row2);
         editKeyboardMarkup.setKeyboard(keyboardRows);
-        sendInlineKeyboard(chatId, "Editar tarea", editKeyboardMarkup);
+    
+        String taskMessage = String.format(
+            "*Nombre:* %s\n*Descripción:* %s",
+            taskDto.getName(),
+            taskDto.getDescription()
+        );
+    
+        sendMarkdown(chatId, taskMessage);
+        sendInlineKeyboard(chatId, "Acciones ⚙️", editKeyboardMarkup);
     }
 
+        private void sendMarkdown(long chatId, String text) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(text);
+        message.setParseMode("Markdown");
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            logger.error(e.getLocalizedMessage(), e);
+        }
+    }
 
     private void handleAuthenticatedCommands(long chatId, MemberDto memberDto, String message) {
         if (message.equals(BotCommands.START.getCommand())) {
@@ -178,13 +219,12 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
-
     private void handleTaskSession(long chatId, TaskDto newTaskSession, String text) {
         logger.info("isEdit? " + newTaskSession.getIsEdit());
         if (newTaskSession.getIsEdit()) {
             handleTaskSessionEdit(chatId, newTaskSession, text);
-        }else{
-           handleTaskSessionAdd(chatId, newTaskSession, text); 
+        } else {
+            handleTaskSessionAdd(chatId, newTaskSession, text);
         }
     }
 
@@ -196,7 +236,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         } else if (newTaskSession.getDescription() == null) {
             newTaskSession.setDescription(text);
             taskSessionService.updateTask(chatId, newTaskSession);
-
             send(chatId, "Nueva tarea:");
             InlineKeyboardMarkup infoKeyboardMarkup = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
@@ -245,13 +284,37 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         send(chatId, BotMessages.UNKNOWN_TEXT.getMessage());
     }
 
+    private void sendWelcomeMessage(long chatId) {
+        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
+                "📝 /start - Iniciar y obtener un resumen\n" +
+                "📋 /todolist - Ver tu lista de tareas\n" +
+                "➕ /additem - Añadir una nueva tarea\n" +
+                "❌ /cancel - Cancelar la acción actual\n\n" +
+                "¡Espero ayudarte a mantenerte organizado!";
+    
+        send(chatId, welcomeMessage);
+    }
+
     private void replyToStart(long chatId) {
-        send(chatId, BotMessages.SUMMARY.getMessage());
+        sendWelcomeMessage(chatId);
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton todolistButton = new InlineKeyboardButton();
+        todolistButton.setText("Ver tareas 📝");
+        todolistButton.setCallbackData(BotCommands.TODO_LIST.getCommand());
+        InlineKeyboardButton addItemButton = new InlineKeyboardButton();
+        addItemButton.setText("Agregar tarea ✏️");
+        addItemButton.setCallbackData(BotCommands.ADD_ITEM.getCommand());
+        row.add(todolistButton);
+        row.add(addItemButton);
+        keyboardRows.add(row);
+        keyboardMarkup.setKeyboard(keyboardRows);
+        sendInlineKeyboard(chatId, "Selecciona una de las siguientes opciones:", keyboardMarkup);
     }
 
     private void replyToListToDo(long chatId, MemberDto memberDto) {
         List<TaskDto> tasks = taskService.getAllByMember(memberDto);
-
         if (tasks.isEmpty()) {
             send(chatId, "No tienes tareas");
         } else {
@@ -262,9 +325,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private void sendTasksList(long chatId, String header, List<TaskDto> tasks, boolean isDone) {
         List<TaskDto> filteredTasks = tasks.stream()
-                .filter(task -> task.getIsDone() == isDone)
-                .collect(Collectors.toList());
-
+            .filter(task -> task.getIsDone() == isDone)
+            .collect(Collectors.toList());
         InlineKeyboardMarkup keyboardMarkup = createTasksKeyboard(filteredTasks, isDone);
         sendInlineKeyboard(chatId, header, keyboardMarkup);
     }
@@ -277,17 +339,14 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             taskButton.setText(task.getName());
             taskButton.setCallbackData((isDone ? "TaskDone-" : "TaskActive-") + task.getTaskId());
             row.add(taskButton);
-
             if (!isDone) {
                 InlineKeyboardButton doneButton = new InlineKeyboardButton();
-                doneButton.setText("done");
+                doneButton.setText("Completar ✅");
                 doneButton.setCallbackData("EditDone-" + task.getTaskId());
                 row.add(doneButton);
             }
-
             rows.add(row);
         }
-
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         keyboardMarkup.setKeyboard(rows);
         return keyboardMarkup;

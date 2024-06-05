@@ -36,6 +36,10 @@ public class TaskSession {
     private boolean isEdit;
 
     @ManyToOne
+    @JoinColumn(name = "task_id")
+    private Task task;
+    
+    @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
 
@@ -49,11 +53,11 @@ public class TaskSession {
         this.isFilled = false;
         this.isEdit = false;
         this.chatId = null;
+        this.task = null;
     }
 
     // Constructor con todos los campos
     public TaskSession(int id, String name, String description, boolean isDone, LocalDate startDate, LocalDate endDate, Long chatId, boolean isEdit ,Member member) {
-        this.id = id;
         this.name = name;
         this.description = description;
         this.isDone = isDone;
@@ -62,6 +66,7 @@ public class TaskSession {
         this.chatId = chatId;
         this.isEdit = isEdit;
         this.member = member;
+        this.task = null;
     }
 
     public int getId() {
@@ -144,9 +149,17 @@ public class TaskSession {
         this.isEdit = isEdit;
     } 
 
+    public Task getTask() {
+        return task;
+    }  
+    
+    public void setTask(Task task) {
+        this.task = task;
+    } 
+
     @Override
     public String toString() {
-        return "TaskSession{" + "id=" + id + ", name=" + name + ", description=" + description + ", isDone=" + isDone + ", startDate=" + startDate + ", endDate=" + endDate + ", isFilled=" + isFilled + ", chatId=" + chatId + ", isEdit=" + isEdit +'}';
+        return "TaskSession{" + "id=" + id + ", name=" + name + ", description=" + description + ", isDone=" + isDone + ", startDate=" + startDate + ", endDate=" + endDate + ", isFilled=" + isFilled + ", chatId=" + chatId + ", isEdit=" + isEdit + '}';
     } 
     
     

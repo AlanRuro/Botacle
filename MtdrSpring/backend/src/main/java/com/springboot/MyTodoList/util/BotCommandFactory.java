@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScope
 public class BotCommandFactory {
     public static SetMyCommands getCommandsForManager(long chatId) {
         List<BotCommand> botCommands = new ArrayList<>();
+        botCommands.add(new BotCommand(BotCommands.START.getCommand(), BotLabels.START.getLabel()));
         botCommands.add(new BotCommand(BotCommands.ADD_ITEM.getCommand(), BotLabels.ADD_ITEM.getLabel()));
         botCommands.add(new BotCommand(BotCommands.TODO_LIST.getCommand(), BotLabels.MY_TODO_LIST.getLabel()));
         botCommands.add(new BotCommand(BotCommands.CANCEL.getCommand(), BotLabels.CANCEL.getLabel()));
@@ -20,6 +21,7 @@ public class BotCommandFactory {
     
     public static SetMyCommands getCommandsForEmployee(long chatId) {
         List<BotCommand> botCommands = new ArrayList<>();
+        botCommands.add(new BotCommand(BotCommands.START.getCommand(), BotLabels.START.getLabel()));
         botCommands.add(new BotCommand(BotCommands.ADD_ITEM.getCommand(), BotLabels.ADD_ITEM.getLabel()));
         botCommands.add(new BotCommand(BotCommands.TODO_LIST.getCommand(), BotLabels.MY_TODO_LIST.getLabel()));  
         botCommands.add(new BotCommand(BotCommands.CANCEL.getCommand(), BotLabels.CANCEL.getLabel()));

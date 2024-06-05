@@ -5,6 +5,7 @@ import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.model.Member;
 import com.springboot.MyTodoList.model.TaskSession;
 import com.springboot.MyTodoList.repository.MemberRepository;
+import com.springboot.MyTodoList.repository.TaskRepository;
 import com.springboot.MyTodoList.repository.TaskSessionRepository;
 import java.util.Optional;
 import java.time.LocalDate;
@@ -22,6 +23,10 @@ public class TaskSessionService {
     
     @Autowired
     private MemberRepository memberRepository;
+    
+    @Autowired
+    private TaskRepository taskRepository;
+    
 
     public TaskSessionService() {
 
@@ -35,6 +40,10 @@ public class TaskSessionService {
             taskSession.setDescription(taskDto.getDescription());
             taskSession.setStartDate(taskDto.getStartDate());
             taskSession.setEndDate(taskDto.getEndDate());
+            if (taskDto.getTaskId() != null) {
+                taskSession.setTask(taskRepository.findById(taskDto.getTaskId()).get());
+            
+            }
             taskSessionRepository.save(taskSession);
         }
     }
@@ -66,12 +75,18 @@ public class TaskSessionService {
         if (taskSessionOpt.isPresent()) {
             TaskSession taskSession = taskSessionOpt.get();
             taskDto.setTaskSessionId(taskSession.getId());
+            taskDto.setTaskSessionId(taskSession.getId());
             taskDto.setName(taskSession.getName());
             taskDto.setDescription(taskSession.getDescription());
             taskDto.setStartDate(taskSession.getStartDate());
             taskDto.setEndDate(taskSession.getEndDate());
             taskDto.setMemberId(taskSession.getMember().getId());
             taskDto.setIsEdit(taskSession.getIsEdit());
+
+            if (taskSession.getTask() != null) {
+                taskDto.setTaskId(taskSession.getTask().getId());
+            }
+            
             return taskDto;
         }
         return null;
