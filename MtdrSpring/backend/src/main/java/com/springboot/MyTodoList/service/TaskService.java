@@ -9,6 +9,8 @@ import com.springboot.MyTodoList.repository.TaskRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,16 @@ public class TaskService {
         } else {
             return null;
         }
+    }
+
+    public List<TaskDto> getTasksByTelegramId(long telegramId) {
+        Optional<Member> memberOpt = memberRepository.findByTelegramId(telegramId);
+        if (memberOpt.isPresent()) {
+            Member member = memberOpt.get();
+            List<Task> tasks = taskRepository.findAllByMember(member);
+            return tasks.stream().map(this::toDto).collect(Collectors.toList());
+        }
+        return null;
     }
 
     public TaskDto addTask(TaskDto newTaskDto) {
