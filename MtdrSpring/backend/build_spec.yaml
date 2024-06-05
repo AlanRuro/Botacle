@@ -16,7 +16,6 @@ env:
 
   exportedVariables:
     - BuildServiceVersion
-    - DeploymentFile
 
 steps:
   - type: Command
@@ -52,22 +51,10 @@ steps:
     name: Set up deployment
     command: |
       echo "Creating springboot deplyoment and service"
-      export CURRENTTIME=$( date '+%F_%H:%M:%S' )
-      echo CURRENTTIME is $CURRENTTIME  ...this will be appended to generated deployment yaml
-      mkdir -p /workspace/Botacle/MtdrSpring/backend/tmp
-      cp /workspace/Botacle/MtdrSpring/backend/src/main/resources/todolistapp-springboot.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
-
-      sed -i "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
-
-      sed -e "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-${CURRENTTIME}.yaml > /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-${CURRENTTIME}.yaml
-      mv -- /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
-      sed -e "s|%TODO_PDB_NAME%|${TODO_PDB_NAME}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-${CURRENTTIME}.yaml > /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-${CURRENTTIME}.yaml
-      mv -- /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
-      sed -e "s|%OCI_REGION%|${OCI_REGION}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-${CURRENTTIME}.yaml > /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml
-      mv -- /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
-      sed -e "s|%UI_USERNAME%|${UI_USERNAME}|g" /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-${CURRENTTIME}.yaml > /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml
-      mv -- /workspace/Botacle/MtdrSpring/backend/tmp/todolistapp-springboot-$CURRENTTIME.yaml /workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
-      export DeploymentFile=/workspace/Botacle/MtdrSpring/backend/todolistapp-springboot-$CURRENTTIME.yaml
+      sed -i "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" /workspace/Botacle/MtdrSpring/backend/target/clases/todolistapp-springboot.yaml
+      sed -i "s|%TODO_PDB_NAME%|${TODO_PDB_NAME}|g" /workspace/Botacle/MtdrSpring/backend/target/clases/todolistapp-springboot.yaml
+      sed -i "s|%OCI_REGION%|${OCI_REGION}|g" /workspace/Botacle/MtdrSpring/backend/target/clases/todolistapp-springboot.yaml
+      sed -i "s|%UI_USERNAME%|${UI_USERNAME}|g" /workspace/Botacle/MtdrSpring/backend/target/clases/todolistapp-springboot.yaml
     
         
 
@@ -82,5 +69,5 @@ outputArtifacts:
 
   - name: todoDeployment
     type: BINARY
-    location: ${DeploymentFile}
+    location: /workspace/Botacle/MtdrSpring/backend/target/clases/todolistapp-springboot.yaml
 
