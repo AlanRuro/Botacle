@@ -19,6 +19,10 @@ env:
 
 steps:
   - type: Command
+    name: Install kubectl
+    command: sudo yum install -y kubectl
+
+  - type: Command
     name: Undeploy
     command: |
       echo delete frontend deployment and service...
