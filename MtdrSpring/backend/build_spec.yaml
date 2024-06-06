@@ -20,18 +20,13 @@ env:
 steps:
 
   - type: Command
-    name: Add Kubernetes Repo
+    name: Download kubectl
     command: |
-      cat <<EOF > /etc/yum.repos.d/kubernetes.repo
-      [kubernetes]
-      name=Kubernetes
-      baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-      enabled=1
-      gpgcheck=1
-      repo_gpgcheck=1
-      gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-      EOF
-      
+      KUBECTL_VERSION=$(curl -s https://dl.k8s.io/release/stable.txt)
+      curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+      chmod +x ./kubectl
+      mv ./kubectl /usr/local/bin/kubectl
+
   - type: Command
     name: Install kubectl
     command: yum install -y kubectl
