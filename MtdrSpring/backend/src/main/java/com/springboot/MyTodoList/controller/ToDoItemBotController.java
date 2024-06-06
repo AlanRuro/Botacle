@@ -2,6 +2,8 @@ package com.springboot.MyTodoList.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -13,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
 import com.springboot.MyTodoList.service.MemberService;
@@ -21,7 +24,6 @@ import com.springboot.MyTodoList.service.TaskSessionService;
 import com.springboot.MyTodoList.util.BotCommandFactory;
 import com.springboot.MyTodoList.util.BotCommands;
 import com.springboot.MyTodoList.util.BotMessages;
-import java.util.stream.Collectors;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
@@ -65,6 +67,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void handleReplies(long chatId, long userId, String message) {
         TaskDto taskSessionDto = taskSessionService.getTaskSession(chatId);
         if (taskSessionDto != null) {
+            logger.info("Task session: " + taskSessionDto.getTaskSessionId());
             handleTaskSession(chatId, taskSessionDto, message);
         } else {
             MemberDto memberDto = getMember(userId);
@@ -328,6 +331,18 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         send(chatId, BotMessages.UNKNOWN_TEXT.getMessage());
     }
 
+    private void sendWelcomManagerMessage(long chatId) {
+        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
+                "📝 /start - Iniciar y obtener un resumen\n" +
+                "📋 /todolist - Ver tu lista de tareas\n" +
+                "➕ /additem - Añadir una nueva tarea\n" +
+                "👥 /employeeslist - Ver las tareas de tus empleados\n" +
+                "❌ /cancel - Cancelar la acción actual\n\n" +
+                "¡Espero ayudarte a mantenerte organizado!";
+
+        send(chatId, welcomeMessage);
+    }
+
     private void sendWelcomeMessage(long chatId) {
         String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
                 "📝 /start - Iniciar y obtener un resumen\n" +
@@ -340,7 +355,14 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void replyToStart(long chatId) {
-        sendWelcomeMessage(chatId);
+
+        MemberDto memberDto = getMember(chatId);
+        if (memberDto.getIsManager()) {
+            sendWelcomManagerMessage(chatId);
+        } else {
+            sendWelcomeMessage(chatId);
+        }        
+
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
