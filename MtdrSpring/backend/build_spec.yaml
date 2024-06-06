@@ -41,8 +41,13 @@ steps:
     name: Configure kubeconfig
     command: |
       mkdir -p ~/.kube
-      cp /workspace/Botacle/MtdrSpring/backend/kubeconfig.yaml ~/.kube/config  
+      cp /workspace/Botacle/MtdrSpring/backend/kubeconfig.yaml ~/.kube/config
 
+  - type: Command
+    name: Install kube_token_cache plugin
+    command: |
+      cp /workspace/Botacle/MtdrSpring/utils/kube_token_cache.sh /usr/local/bin/
+      chmod +x /usr/local/bin/kube_token_cache.sh  
   
   - type: Command
     name: Undeploy
