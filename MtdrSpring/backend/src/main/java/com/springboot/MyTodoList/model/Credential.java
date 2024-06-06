@@ -17,6 +17,9 @@ public class Credential {
     
     @Column(name = "password")
     private String password;
+
+    @Column(name = "jwt")
+    private String jwt;
     
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
@@ -54,6 +57,15 @@ public class Credential {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getJwt() {
+        return jwt;
+    }
+
+    public void setJwt(String jwt) {
+        this.jwt = jwt;
+    }
+
 
     @Override
     public String toString() {

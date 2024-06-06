@@ -24,6 +24,13 @@ import com.springboot.MyTodoList.service.TaskSessionService;
 import com.springboot.MyTodoList.util.BotCommandFactory;
 import com.springboot.MyTodoList.util.BotCommands;
 import com.springboot.MyTodoList.util.BotMessages;
+import com.springboot.MyTodoList.util.JwtUtil;
+
+import io.jsonwebtoken.Claims;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
@@ -48,6 +55,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             String messageTextFromTelegram = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
             long userId = update.getMessage().getFrom().getId();
+            logger.info("Received message from chatId={}, userId={}", chatId, userId); // Log chatId and userId
             if (getMember(userId) == null) {
                 send(chatId, "No eres miembro");
                 SetMyCommands commands = BotCommandFactory.getCommandsForNoMember(chatId);
@@ -261,8 +269,27 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             }
         } else if (message.equals(BotCommands.CANCEL.getCommand())) {
             cancelAction(chatId);
+        } else if (message.equals("/login")) { // Add this block to handle /login command
+            handleLogin(chatId, memberDto.getTelegramId());
         } else {
             replyToUnkownText(chatId);
+        }
+    }
+    
+    private void handleLogin(long chatId, long telegramId) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8005/send-email?telegramId=" + telegramId + "&chatId=" + chatId; // Adjust the URL if needed
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                // Claims claims = JwtUtil.decodeToken(response.getBody());
+                // send(chatId, "JWT: " + claims.getSubject());
+                send(chatId, "Revisa tu correo para validar tus credenciales 📧" + chatId);
+            } else {
+                send(chatId, "Failed to retrieve token: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            send(chatId, "Error occurred while retrieving token: " + e.getMessage());
         }
     }
 
@@ -526,4 +553,13 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             logger.error(e.getLocalizedMessage(), e);
         }
     }
+    
+    public void sendLoggedInMessage(long chatId) {
+
+        logger.info("Sending logged in message to chatId={}", chatId);
+
+        send(chatId, "You are now logged in!");
+    }
+
+    
 }

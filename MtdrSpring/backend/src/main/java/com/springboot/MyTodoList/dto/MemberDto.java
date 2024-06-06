@@ -15,9 +15,11 @@ public class MemberDto {
 
     private long telegramId;
     
-    private String username;
+    // private String username;
     
-    private String password;
+    // private String password;
+
+    private int credentialsId;
 
     public String getName() {
         return name;
@@ -67,25 +69,33 @@ public class MemberDto {
         this.telegramId = telegramId;
     }
 
-    public String getUsername() {
-        return username;
+    // public String getUsername() {
+    //     return username;
+    // }
+
+    // public void setUsername(String username) {
+    //     this.username = username;
+    // }
+
+    // public String getPassword() {
+    //     return password;
+    // }
+
+    // public void setPassword(String password) {
+    //     this.password = password;
+    // }
+
+    public int getCredentialsId() {
+        return credentialsId;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+    public void setCredentialsId(int credentialsId) {
+        this.credentialsId = credentialsId;
     }
 
     @Override
     public String toString() {
-        return "MemberDto{" + "name=" + name + ", lastName=" + lastName + ", email=" + email + ", isManager=" + isManager + ", teamId=" + teamId + ", telegramId=" + telegramId + ", username=" + username + ", password=" + password + '}';
+        return "MemberDto{" + "name=" + name + ", lastName=" + lastName + ", email=" + email + ", isManager=" + isManager + ", teamId=" + teamId + ", telegramId=" + telegramId + ", credentialsId=" + credentialsId + '}';
     }
     
     

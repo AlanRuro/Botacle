@@ -41,7 +41,7 @@ while ! state_done KUBECTL; do
   kubectl config set-credentials "user-${cluster_id:(-11)}" --exec-command="kube_token_cache.sh" \
   --exec-arg="ce" \
   --exec-arg="cluster" \
-  --exec-arg="generate-token" \
+  --exec-arg="update-token" \
   --exec-arg="--cluster-id" \
   --exec-arg="${cluster_id}" \
   --exec-arg="--region" \

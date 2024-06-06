@@ -22,19 +22,19 @@ public class AuthService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-   public boolean areCredentialsValid(MemberDto memberDto) {        
-        Optional<Member> member = memberRepository.findByTelegramId(memberDto.getTelegramId());
-        if(member.isPresent()) {
-            Member registeredMember = member.get();
-            Optional<Credential> memberCredentials = credentialRepository.findByMember(registeredMember); 
-            if (memberCredentials.isPresent()) {
-                Credential credentials = memberCredentials.get();
-                return passwordEncoder.matches(memberDto.getPassword(), credentials.getPassword()) 
-                        && (memberDto.getUsername().equals(credentials.getUsername()));
-            }
-        }
-        return false;        
-    }
+//    public boolean areCredentialsValid(MemberDto memberDto) {        
+//         Optional<Member> member = memberRepository.findByTelegramId(memberDto.getTelegramId());
+//         if(member.isPresent()) {
+//             Member registeredMember = member.get();
+//             Optional<Credential> memberCredentials = credentialRepository.findByMember(registeredMember); 
+//             if (memberCredentials.isPresent()) {
+//                 Credential credentials = memberCredentials.get();
+//                 return passwordEncoder.matches(memberDto.getPassword(), credentials.getPassword()) 
+//                         && (memberDto.getUsername().equals(credentials.getUsername()));
+//             }
+//         }
+//         return false;        
+//     }
 
 //    public void registerMember(String username, String password) {
 //        String sql = "INSERT INTO members (username, password) VALUES (?, ?)";
@@ -46,13 +46,19 @@ public class AuthService {
         return member.isPresent();
     }
     
-    public boolean isMemberAuthenticated(MemberDto memberDto) {
-        if (isMemberRegistered(memberDto.getTelegramId())) {
-            return areCredentialsValid(memberDto);        
-        } 
-        return false;
+    // public boolean isMemberAuthenticated(MemberDto memberDto) {
+    //     if (isMemberRegistered(memberDto.getTelegramId())) {
+    //         return areCredentialsValid(memberDto);        
+    //     } 
+    //     return false;
+    // }
+
+    public void updateJwtToken(long telegramId, String token) {
+        Member member = memberRepository.findByTelegramId(telegramId).get();
+        Credential credential = credentialRepository.findByMember(member).get();
+
+        credential.setJwt(token);
+        credentialRepository.save(credential);
     }
-
-
     
 }
