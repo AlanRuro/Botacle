@@ -303,10 +303,10 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         String updateText = "";
         if (newTaskSession.getName() == null) {
             newTaskSession.setName(text);
-            updateText = "Nombre actualizado con éxito";
+            updateText = "Nombre actualizado con éxito! ✅";
         } else if (newTaskSession.getDescription() == null) {
             newTaskSession.setDescription(text);
-            updateText = "Descripción actualizada con éxito";
+            updateText = "Descripción actualizada con éxito ✅";
         }
         taskSessionService.updateTask(chatId, newTaskSession);
         taskSessionService.confirmTaskSession(chatId);
