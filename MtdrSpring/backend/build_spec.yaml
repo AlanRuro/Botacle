@@ -18,19 +18,12 @@ env:
     - BuildServiceVersion
 
 steps:
-
   - type: Command
     name: Download kubectl
     command: |
-      export KUBECTL_VERSION=$(curl -s https://dl.k8s.io/release/stable.txt)
-      echo "Downloading kubectl version $KUBECTL_VERSION"
-      curl -LO https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl"
       chmod +x kubectl
-      mv kubectl /usr/local/bin/kubectl
-
-  - type: Command
-    name: Install kubectl
-    command: yum install -y kubectl
+      sudo mv kubectl /usr/local/bin/
 
   - type: Command
     name: Undeploy
