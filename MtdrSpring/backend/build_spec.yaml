@@ -41,7 +41,7 @@ steps:
     name: Configure kubeconfig
     command: |
       mkdir -p ~/.kube
-      cp /workspace/Botacle/MtdrSpring/backend/pom.xml/kubeconfig.yaml ~/.kube/config  
+      cp /workspace/Botacle/MtdrSpring/backend/kubeconfig.yaml ~/.kube/config  
 
   
   - type: Command
