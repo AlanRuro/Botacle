@@ -52,6 +52,7 @@ steps:
     command: |
       echo "Creating springboot deplyoment and service"
       sed -i "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" /workspace/Botacle/MtdrSpring/backend/target/classes/todolistapp-springboot.yaml
+      sed -i "s|%VERSION%|${BuildServiceVersion}|g" /workspace/Botacle/MtdrSpring/backend/target/classes/todolistapp-springboot.yaml
       sed -i "s|%TODO_PDB_NAME%|${TODO_PDB_NAME}|g" /workspace/Botacle/MtdrSpring/backend/target/classes/todolistapp-springboot.yaml
       sed -i "s|%OCI_REGION%|${OCI_REGION}|g" /workspace/Botacle/MtdrSpring/backend/target/classes/todolistapp-springboot.yaml
       sed -i "s|%UI_USERNAME%|${UI_USERNAME}|g" /workspace/Botacle/MtdrSpring/backend/target/classes/todolistapp-springboot.yaml
