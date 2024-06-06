@@ -103,9 +103,12 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             int taskId = Integer.parseInt(data.substring(5));
             TaskDto taskDto = taskService.getTaskById(taskId);
             if (taskDto != null) {
-                String text = taskDto.getName() + "\n----\n" + taskDto.getDescription();
-                send(chatId, text);
-            }
+                String taskMessage = String.format("*Nombre:* %s\n*Descripción:* %s",
+                    taskDto.getName(),
+                    taskDto.getDescription()
+                );
+                sendMarkdown(chatId, taskMessage);
+            }            
         }
     }
 
