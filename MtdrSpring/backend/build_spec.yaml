@@ -25,6 +25,7 @@ steps:
       chmod +x kubectl
       mkdir -p ~/.local/bin
       mv ./kubectl ~/.local/bin/kubectl
+      export PATH=$PATH:~/.local/bin
 
   - type: Command
     name: Undeploy
