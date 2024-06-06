@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -18,6 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
@@ -70,6 +73,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void handleReplies(long chatId, long userId, String message) {
         TaskDto taskSessionDto = taskSessionService.getTaskSession(chatId);
         if (taskSessionDto != null) {
+            logger.info("Task session: " + taskSessionDto.getTaskSessionId());
             logger.info("Task session: " + taskSessionDto.getTaskSessionId());
             handleTaskSession(chatId, taskSessionDto, message);
         } else {
@@ -429,6 +433,18 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         send(chatId, welcomeMessage);
     }
 
+    private void sendWelcomManagerMessage(long chatId) {
+        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
+                "📝 /start - Iniciar y obtener un resumen\n" +
+                "📋 /todolist - Ver tu lista de tareas\n" +
+                "➕ /additem - Añadir una nueva tarea\n" +
+                "👥 /employeeslist - Ver las tareas de tus empleados\n" +
+                "❌ /cancel - Cancelar la acción actual\n\n" +
+                "¡Espero ayudarte a mantenerte organizado!";
+
+        send(chatId, welcomeMessage);
+    }
+
     private void sendWelcomeMessage(long chatId) {
         String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
                 "📝 /start - Iniciar y obtener un resumen\n" +
@@ -441,6 +457,14 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void replyToStart(long chatId) {
+
+        MemberDto memberDto = getMember(chatId);
+        if (memberDto.getIsManager()) {
+            sendWelcomManagerMessage(chatId);
+        } else {
+            sendWelcomeMessage(chatId);
+        }        
+
 
         MemberDto memberDto = getMember(chatId);
         if (memberDto.getIsManager()) {
@@ -610,15 +634,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             execute(editMarkup);
         } catch (TelegramApiException e) {
             logger.error(e.getLocalizedMessage(), e);
-        }
-    }
-
-    private boolean isValidDate(String date) {
-        try {
-            LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
-            return true;
-        } catch (DateTimeParseException e) {
-            return false;
         }
     }
 }
