@@ -19,22 +19,6 @@ env:
 
 steps:
   - type: Command
-    name: Download kubectl
-    command: |
-      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-      chmod +x kubectl
-      mkdir -p ~/.local/bin
-      mv ./kubectl ~/.local/bin/kubectl
-      export PATH=$PATH:~/.local/bin
-
-  - type: Command
-    name: Undeploy
-    command: |
-      echo delete frontend deployment and service...
-      kubectl -n mtdrworkshop delete deployment todolistapp-springboot-deployment
-      kubectl -n mtdrworkshop delete service todolistapp-springboot-service
-  
-  - type: Command
     name: Install the latest Oracle GraalVM for JDK 20 - JDK and Native Image
     command: |
       yum -y install graalvm-20-native-image
