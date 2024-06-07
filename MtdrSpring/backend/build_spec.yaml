@@ -73,7 +73,7 @@ steps:
     command: |
       BuildServiceVersion=`echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7`
       echo $BuildServiceVersion
-      docker build -t $IMAGE_NAME /workspace/Botacle/MtdrSpring/backend/
+      docker build --platform=linux/arm64 -t $IMAGE_NAME /workspace/Botacle/MtdrSpring/backend/
 
   - type: Command
     name: Set up deployment
