@@ -1,5 +1,8 @@
 package com.springboot.MyTodoList.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -128,10 +131,15 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             TaskDto taskDto = taskService.getTaskById(taskId);
             if (taskDto != null) {
                 String taskMessage = String.format(
-                        "*Nombre:* %s\n*Descripción:* %s",
-                        taskDto.getName(),
-                        taskDto.getDescription()
-                );
+                    "*Nombre:* %s\n" +
+                    "*Descripción:* %s\n" +
+                    "*Fecha de inicio:* %s\n" +
+                    "*Fecha de fin:* %s",
+                    taskDto.getName(),
+                    taskDto.getDescription(),
+                    taskDto.getStartDate() != null ? taskDto.getStartDate().toString() : "No especificada",
+                    taskDto.getEndDate() != null ? taskDto.getEndDate().toString() : "No especificada"
+                );                
 
                 sendMarkdown(chatId, taskMessage);
             }
@@ -225,15 +233,22 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         editKeyboardMarkup.setKeyboard(keyboardRows);
 
         String taskMessage = String.format(
-                "*Nombre:* %s\n*Descripción:* %s",
-                taskDto.getName(),
-                taskDto.getDescription()
+            "*Nombre:* %s\n" +
+            "*Descripción:* %s\n" +
+            "*Fecha de inicio:* %s\n" +
+            "*Fecha de fin:* %s",
+            taskDto.getName(),
+            taskDto.getDescription(),
+            taskDto.getStartDate() != null ? taskDto.getStartDate().toString() : "No especificada",
+            taskDto.getEndDate() != null ? taskDto.getEndDate().toString() : "No especificada"
         );
+        
 
         sendMarkdown(chatId, taskMessage);
         sendInlineKeyboard(chatId, "Acciones ⚙️", editKeyboardMarkup);
     }
 
+    
     private void sendMarkdown(long chatId, String text) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
@@ -279,26 +294,44 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         if (newTaskSession.getName() == null) {
             newTaskSession.setName(text);
             send(chatId, "Ingresa la descripcion");
-            taskSessionService.updateTask(chatId, newTaskSession);
         } else if (newTaskSession.getDescription() == null) {
             newTaskSession.setDescription(text);
-            taskSessionService.updateTask(chatId, newTaskSession);
-            send(chatId, "Nueva tarea:");
-            InlineKeyboardMarkup infoKeyboardMarkup = new InlineKeyboardMarkup();
-            List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
-            List<InlineKeyboardButton> row = new ArrayList<>();
-            InlineKeyboardButton yesButton = new InlineKeyboardButton();
-            yesButton.setText("Si");
-            yesButton.setCallbackData("SessionTaskYes-" + Long.toString(chatId));
-            InlineKeyboardButton noButton = new InlineKeyboardButton();
-            noButton.setText("No");
-            noButton.setCallbackData("SessionTaskNo-" + Long.toString(chatId));
-            row.add(yesButton);
-            row.add(noButton);
-            keyboardRows.add(row);
-            infoKeyboardMarkup.setKeyboard(keyboardRows);
-            sendInlineKeyboard(chatId, newTaskSession.getName() + " " + newTaskSession.getDescription(), infoKeyboardMarkup);
+            send(chatId, "Ingresa la fecha de inicio (YYYY-MM-DD):");
+        } else if (newTaskSession.getStartDate() == null) {
+            if (isValidDate(text)) {
+                newTaskSession.setStartDate(LocalDate.parse(text));
+                send(chatId, "Ingresa la fecha de fin (YYYY-MM-DD):");
+            } else {
+                send(chatId, "Fecha inválida. Ingresa la fecha de inicio (YYYY-MM-DD):");
+            }
+        } else if (newTaskSession.getEndDate() == null) {
+            if (isValidDate(text)) {
+                newTaskSession.setEndDate(LocalDate.parse(text));
+                taskSessionService.updateTask(chatId, newTaskSession);
+                sendTaskConfirmation(chatId, newTaskSession);
+            } else {
+                send(chatId, "Fecha inválida. Ingresa la fecha de fin (YYYY-MM-DD):");
+            }
         }
+        taskSessionService.updateTask(chatId, newTaskSession);
+    }
+
+    private void sendTaskConfirmation(long chatId, TaskDto newTaskSession) {
+        send(chatId, "Nueva tarea:");
+        InlineKeyboardMarkup infoKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton yesButton = new InlineKeyboardButton();
+        yesButton.setText("Confirmar");
+        yesButton.setCallbackData("SessionTaskYes-" + Long.toString(chatId));
+        InlineKeyboardButton noButton = new InlineKeyboardButton();
+        noButton.setText("Cancelar");
+        noButton.setCallbackData("SessionTaskNo-" + Long.toString(chatId));
+        row.add(yesButton);
+        row.add(noButton);
+        keyboardRows.add(row);
+        infoKeyboardMarkup.setKeyboard(keyboardRows);
+        sendInlineKeyboard(chatId, newTaskSession.getName() + " " + newTaskSession.getDescription(), infoKeyboardMarkup);
     }
 
     private void handleTaskSessionEdit(long chatId, TaskDto newTaskSession, String text) {
@@ -524,6 +557,15 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             execute(editMarkup);
         } catch (TelegramApiException e) {
             logger.error(e.getLocalizedMessage(), e);
+        }
+    }
+
+    private boolean isValidDate(String date) {
+        try {
+            LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
         }
     }
 }
