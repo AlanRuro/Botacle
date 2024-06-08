@@ -97,6 +97,53 @@ steps:
   - type: Command
     name: Set up deployment
     command: |
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      chmod +x kubectl
+      mkdir -p ~/.local/bin
+      mv ./kubectl ~/.local/bin/kubectl
+      export PATH=$PATH:~/.local/bin
+
+  - type: Command
+    name: Configure kubeconfig
+    command: |
+      mkdir -p ~/.kube
+      cp /workspace/Botacle/MtdrSpring/backend/kubeconfig.yaml ~/.kube/config
+
+  - type: Command
+    name: Install kube_token_cache plugin
+    command: |
+      cp /workspace/Botacle/MtdrSpring/utils/kube_token_cache.sh /usr/local/bin/
+      chmod +x /usr/local/bin/kube_token_cache.sh  
+  
+  - type: Command
+    name: Undeploy
+    command: |
+      echo delete frontend deployment and service...
+      kubectl -n mtdrworkshop delete deployment todolistapp-springboot-deployment
+      kubectl -n mtdrworkshop delete service todolistapp-springboot-service
+
+  - type: Command
+    name: Compile
+    command: mvn -f /workspace/Botacle/MtdrSpring/backend/pom.xml compile
+
+  - type: Command
+    name: Package
+    command: mvn -f /workspace/Botacle/MtdrSpring/backend/pom.xml clean package spring-boot:repackage
+
+  - type: Command
+    name: Check
+    command: ls -la /workspace/Botacle/MtdrSpring/backend/target/
+
+  - type: Command
+    name: Dockerize
+    command: |
+      BuildServiceVersion=`echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7`
+      echo $BuildServiceVersion
+      docker build --platform=linux/arm64 -t $IMAGE_NAME /workspace/Botacle/MtdrSpring/backend/
+
+  - type: Command
+    name: Set up deployment
+    command: |
       echo "Creating springboot deplyoment and service"
       sed -i "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" /workspace/Botacle/MtdrSpring/backend/target/classes/todolistapp-springboot.yaml
       sed -i "s|%VERSION%|${BuildServiceVersion}|g" /workspace/Botacle/MtdrSpring/backend/target/classes/todolistapp-springboot.yaml
