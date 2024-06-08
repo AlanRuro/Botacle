@@ -636,4 +636,13 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             logger.error(e.getLocalizedMessage(), e);
         }
     }
+
+    private boolean isValidDate(String date) {
+        try {
+            LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
 }
