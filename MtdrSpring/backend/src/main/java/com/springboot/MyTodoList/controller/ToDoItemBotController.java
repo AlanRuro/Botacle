@@ -125,7 +125,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
-    private void handleTaskCallback(long chatId, String data) {
+    public void handleTaskCallback(long chatId, String data) {
         if (data.startsWith("Active-")) {
             int taskId = Integer.parseInt(data.substring(7));
             TaskDto taskDto = taskService.getTaskById(taskId);
@@ -146,8 +146,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                     taskDto.getStartDate() != null ? taskDto.getStartDate().toString() : "No especificada",
                     taskDto.getEndDate() != null ? taskDto.getEndDate().toString() : "No especificada"
                 );                
-
                 sendMarkdown(chatId, taskMessage);
+                taskService.updateTask(taskDto);
             }
         }
     }
