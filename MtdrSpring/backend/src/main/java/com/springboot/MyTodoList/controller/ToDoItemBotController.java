@@ -178,46 +178,41 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
+
     private void handleTaskEdit(long chatId, String data) {
+        int taskId = Integer.parseInt(data.substring(5));
+        TaskDto taskDto = taskService.getTaskById(taskId);
+        if (taskDto == null) {
+            return;
+        }
+        MemberDto memberDto = memberService.getMemberById(taskDto.getMemberId());
         if (data.startsWith("Name-")) {
-            int taskId = Integer.parseInt(data.substring(5));
-            TaskDto taskDto = taskService.getTaskById(taskId);
-            if (taskDto != null) {
-                send(chatId, "Ingrese el nuevo nombre:");
-                TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, getMember(taskDto.getMemberId()), true);
-                newTaskSession.setName(null);
-                newTaskSession.setDescription(taskDto.getDescription());
-                newTaskSession.setStartDate(taskDto.getStartDate());
-                newTaskSession.setEndDate(taskDto.getEndDate());
-                newTaskSession.setTaskId(taskId);
-                taskSessionService.updateTask(chatId, newTaskSession);
-            }
+            send(chatId, "Ingrese el nuevo nombre:");
+            TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, memberDto, true);
+            newTaskSession.setName(null);
+            newTaskSession.setDescription(taskDto.getDescription());
+            newTaskSession.setStartDate(taskDto.getStartDate());
+            newTaskSession.setEndDate(taskDto.getEndDate());
+            newTaskSession.setTaskId(taskId);
+            taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Desc-")) {
-            int taskId = Integer.parseInt(data.substring(5));
-            TaskDto taskDto = taskService.getTaskById(taskId);
-            if (taskDto != null) {
-                send(chatId, "Ingrese la nueva descripción:");
-                TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, getMember(taskDto.getMemberId()), true);
-                newTaskSession.setName(taskDto.getName());
-                newTaskSession.setDescription(null);
-                newTaskSession.setStartDate(taskDto.getStartDate());
-                newTaskSession.setEndDate(taskDto.getEndDate());
-                newTaskSession.setTaskId(taskId);
-                taskSessionService.updateTask(chatId, newTaskSession);
-            }
+            send(chatId, "Ingrese la nueva descripción:");
+            TaskDto newTaskSession = taskSessionService.createEmptyTask(chatId, memberDto, true);
+            newTaskSession.setName(taskDto.getName());
+            newTaskSession.setDescription(null);
+            newTaskSession.setStartDate(taskDto.getStartDate());
+            newTaskSession.setEndDate(taskDto.getEndDate());
+            newTaskSession.setTaskId(taskId);
+            taskSessionService.updateTask(chatId, newTaskSession);
         } else if (data.startsWith("Done-")) {
-            int taskId = Integer.parseInt(data.substring(5));
-            TaskDto taskDto = taskService.getTaskById(taskId);
-            if (taskDto != null) {
-                taskDto.setIsDone(true);
-                taskService.updateTask(taskDto);
-                send(chatId, "Tarea hecha");
-            }
+            taskDto.setIsDone(true);
+            taskService.updateTask(taskDto);
+            send(chatId, "Tarea hecha");
         } else if (data.startsWith("Delete-")) {
             handleTaskDelete(chatId, data);
         }
-    }    
-
+    } 
+   
     private void handleTaskDelete(long chatId, String data) {
         int taskId = Integer.parseInt(data.substring(7));
         logger.info("Attempting to delete task with ID: " + taskId);
