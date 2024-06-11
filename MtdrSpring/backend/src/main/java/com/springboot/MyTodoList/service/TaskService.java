@@ -37,14 +37,6 @@ public class TaskService {
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
 
 
-
-    @Autowired
-    private TaskSessionRepository taskSessionRepository;
-
-    private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
-
-
-
     public List<TaskDto> getAllByMember(MemberDto memberDto) {
         Optional<Member> memberOpt = memberRepository.findByTelegramId(memberDto.getTelegramId());
         if (memberOpt.isPresent()) {
@@ -88,88 +80,26 @@ public class TaskService {
         return taskDto;
     }
 
-    // public boolean deleteTask(int taskId) {
-    //     try {
-    //         // Ensure the task exists before attempting to delete it
-    //         if (taskRepository.existsById(taskId)) {
-    //             taskRepository.deleteById(taskId);
-    //             logger.info("Task deleted from repository: " + taskId);
-    //             // Verify if the task still exists
-    //             boolean stillExists = taskRepository.existsById(taskId);
-    //             logger.info("Task still exists after deletion: " + stillExists);
-    //             return !stillExists;
-    //         } else {
-    //             logger.warn("Task with ID " + taskId + " does not exist.");
-    //             return false;
-    //         }
-    //     } catch (Exception e) {
-    //         logger.error("Error deleting task: " + e.getMessage(), e);
-    //         return false;
-    //     }
-    // }
-
-    @Transactional
-    // public boolean deleteTask(int taskId) {
-    //     try {
-    //         // Ensure the task exists before attempting to delete it
-    //         if (taskRepository.existsById(taskId)) {
-    //             taskRepository.deleteById(taskId);
-    //             logger.info("Task deleted from repository: " + taskId);
-    //             // Verify if the task still exists
-    //             boolean stillExists = taskRepository.existsById(taskId);
-    //             logger.info("Task still exists after deletion: " + stillExists);
-    //             return !stillExists;
-    //         } else {
-    //             logger.warn("Task with ID " + taskId + " does not exist.");
-    //             return false;
-    //         }
-    //     } catch (Exception e) {
-    //         logger.error("Error deleting task: " + e.getMessage(), e);
-    //         return false;
-    //     }
-    // }
-
     @Transactional
     public boolean deleteTask(int id) {
         try {
-            // Fetch the task by ID
             Optional<Task> taskOptional = taskRepository.findById(id);
             if (taskOptional.isPresent()) {
                 Task task = taskOptional.get();
-                
-                // Delete all related task sessions
                 taskSessionRepository.deleteAllByTask(task);
                 taskRepository.deleteTaskById(id);
-                
                 return true;
             } else {
                 logger.error("Task not found with id: " + id);
                 return false;
             }
-            // Fetch the task by ID
-            Optional<Task> taskOptional = taskRepository.findById(id);
-            if (taskOptional.isPresent()) {
-                Task task = taskOptional.get();
-                
-                // Delete all related task sessions
-                taskSessionRepository.deleteAllByTask(task);
-                taskRepository.deleteTaskById(id);
-                
-                return true;
-            } else {
-                logger.error("Task not found with id: " + id);
-                return false;
-            }
+        
         } catch (Exception e) {
             logger.error("Error deleting task: " + e.getMessage(), e);
             logger.error("Error deleting task: " + e.getMessage(), e);
             return false;
         }
     }
-
-    
-
-    
 
     public void updateTask(TaskDto taskDto) {
         Optional<Task> taskData = taskRepository.findById(taskDto.getTaskId());

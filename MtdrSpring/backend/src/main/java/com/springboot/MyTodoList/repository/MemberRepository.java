@@ -1,7 +1,7 @@
 package com.springboot.MyTodoList.repository;
 
 import com.springboot.MyTodoList.model.Member;
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
