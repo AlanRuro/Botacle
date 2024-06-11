@@ -11,7 +11,7 @@ public enum BotMessages {
 	ITEM_DELETED("Item deleted! Select /todolist to return to the list of todo items, or /start to go to the main screen."),
 	TYPE_NEW_TODO_ITEM("Ingresa el nombre de la tarea"),
 	NEW_ITEM_ADDED("New item added! Select /todolist to return to the list of todo items, or /start to go to the main screen."),
-        UNKNOWN_TEXT("Para usar este bot debe iniciar sesion con /login."),
+        UNKNOWN_TEXT("Favor de ingresar un comando válido. Usa /start para ver los comandos disponibles."),
         NOT_MEMBER("No eres usuario"),
 	BYE("Bye! Select /start to resume!");
 

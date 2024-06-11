@@ -345,7 +345,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void handleTaskSessionAdd(long chatId, TaskDto newTaskSession, String text) {
         if (newTaskSession.getName() == null) {
             newTaskSession.setName(text);
-            send(chatId, "Ingresa la descripcion");
+            send(chatId, "Ingresa la descripción");
         } else if (newTaskSession.getDescription() == null) {
             newTaskSession.setDescription(text);
             send(chatId, "Ingresa la fecha de inicio (YYYY-MM-DD):");
