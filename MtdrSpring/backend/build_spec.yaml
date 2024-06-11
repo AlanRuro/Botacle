@@ -33,6 +33,10 @@ steps:
     command: mvn -f /workspace/Botacle/MtdrSpring/backend/pom.xml compile
 
   - type: Command
+    name: Test
+    command: mvn -f /workspace/Botacle/MtdrSpring/backend test
+
+  - type: Command
     name: Package
     command: mvn -f /workspace/Botacle/MtdrSpring/backend/pom.xml clean package spring-boot:repackage
 
