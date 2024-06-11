@@ -428,18 +428,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         send(chatId, welcomeMessage);
     }
 
-    private void sendWelcomManagerMessage(long chatId) {
-        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
-                "📝 /start - Iniciar y obtener un resumen\n" +
-                "📋 /todolist - Ver tu lista de tareas\n" +
-                "➕ /additem - Añadir una nueva tarea\n" +
-                "👥 /employeeslist - Ver las tareas de tus empleados\n" +
-                "❌ /cancel - Cancelar la acción actual\n\n" +
-                "¡Espero ayudarte a mantenerte organizado!";
-
-        send(chatId, welcomeMessage);
-    }
-
     private void sendWelcomeMessage(long chatId) {
         String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
                 "📝 /start - Iniciar y obtener un resumen\n" +
