@@ -37,6 +37,7 @@ public class TaskService {
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
 
 
+
     public List<TaskDto> getAllByMember(MemberDto memberDto) {
         Optional<Member> memberOpt = memberRepository.findByTelegramId(memberDto.getTelegramId());
         if (memberOpt.isPresent()) {
@@ -95,11 +96,11 @@ public class TaskService {
             }
         
         } catch (Exception e) {
-            logger.error("Error deleting task: " + e.getMessage(), e);
-            logger.error("Error deleting task: " + e.getMessage(), e);
             return false;
         }
     }
+
+    
 
     public void updateTask(TaskDto taskDto) {
         Optional<Task> taskData = taskRepository.findById(taskDto.getTaskId());
