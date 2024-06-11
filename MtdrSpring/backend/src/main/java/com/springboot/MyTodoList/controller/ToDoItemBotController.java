@@ -446,15 +446,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             sendWelcomManagerMessage(chatId);
         } else {
             sendWelcomeMessage(chatId);
-        }        
-
-
-        MemberDto memberDto = getMember(chatId);
-        if (memberDto.getIsManager()) {
-            sendWelcomManagerMessage(chatId);
-        } else {
-            sendWelcomeMessage(chatId);
-        }        
+        }             
 
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
