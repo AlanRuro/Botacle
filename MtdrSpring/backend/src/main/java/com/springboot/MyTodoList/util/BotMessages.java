@@ -15,9 +15,8 @@ public enum BotMessages {
                 + "➕ /additem - Añadir una nueva tarea\n"
                 + "❌ /cancel - Cancelar la acción actual\n\n"
                 + "¡Espero ayudarte a mantenerte organizado!"),
-        SUMMARY("Puedes usar estos comandos:\n/todolist para ver tus tareas\n/additem para agregar una tarea\n/logout para cerrar sesion"),
+        SUMMARY("Puedes usar estos comandos:\n/todolist para ver tus tareas\n/additem para agregar una tarea\n"),
 	BOT_REGISTERED_STARTED("Bot registered and started succesfully!"),
-        LOGIN("Por favor, usa /login para iniciar sesión."),
 	ITEM_DONE("Item done! Select /todolist to return to the list of todo items, or /start to go to the main screen."), 
 	ITEM_UNDONE("Item undone! Select /todolist to return to the list of todo items, or /start to go to the main screen."), 
 	ITEM_DELETED("Item deleted! Select /todolist to return to the list of todo items, or /start to go to the main screen."),
