@@ -27,6 +27,7 @@ import com.springboot.MyTodoList.service.TaskSessionService;
 import com.springboot.MyTodoList.util.BotCommandFactory;
 import com.springboot.MyTodoList.util.BotCommands;
 import com.springboot.MyTodoList.util.BotMessages;
+import com.springboot.MyTodoList.util.PatternChecker;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
@@ -338,6 +339,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleTaskSessionAdd(long chatId, TaskDto newTaskSession, String text) {
+        if (PatternChecker.hasSpecialCharacters(text) || !PatternChecker.isUTF8(text)) {
+            send(chatId, "Texto invalido");
+            return;
+        }
+        
         if (newTaskSession.getName() == null) {
             newTaskSession.setName(text);
             send(chatId, "Ingresa la descripcion");
@@ -382,6 +388,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleTaskSessionEdit(long chatId, TaskDto newTaskSession, String text) {
+        if (PatternChecker.hasSpecialCharacters(text) || !PatternChecker.isUTF8(text)) {
+            send(chatId, "Texto invalido");
+            return;
+        }
+        
         logger.info("Editing task session");
         String updateText = "";
         if (newTaskSession.getName() == null) {
