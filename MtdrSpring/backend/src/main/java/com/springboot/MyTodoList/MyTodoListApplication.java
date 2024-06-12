@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import com.springboot.MyTodoList.controller.ToDoItemBotController;
-import com.springboot.MyTodoList.service.AuthService;
 import com.springboot.MyTodoList.service.MemberService;
 import com.springboot.MyTodoList.service.TaskService;
 import com.springboot.MyTodoList.service.TaskSessionService;

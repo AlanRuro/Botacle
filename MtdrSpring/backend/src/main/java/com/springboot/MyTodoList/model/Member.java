@@ -34,9 +34,6 @@ public class Member {
     
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Task> tasks;
-
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Credential credential;
     
     public Member() {
 
@@ -113,14 +110,6 @@ public class Member {
 
     public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
-    }
-    
-    public Credential getCredential() {
-        return credential;
-    }
-
-    public void setCredential(Credential credential) {
-        this.credential = credential;
     }
 
     @Override
