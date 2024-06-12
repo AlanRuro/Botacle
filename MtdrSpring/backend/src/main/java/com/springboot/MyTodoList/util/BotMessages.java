@@ -2,7 +2,19 @@ package com.springboot.MyTodoList.util;
 
 public enum BotMessages {
 	
-	HELLO_MYTODO_BOT("Hola! Soy un bot para que los empleados de Oracle puedan organizarse mejor!\nPara usarme por favor usa el comando /login."),
+	HELLO_MANAGER("🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n"
+                + "📝 /start - Iniciar y obtener un resumen\n"
+                + "📋 /todolist - Ver tu lista de tareas\n"
+                + "➕ /additem - Añadir una nueva tarea\n"
+                + "👥 /employeeslist - Ver las tareas de tus empleados\n"
+                + "❌ /cancel - Cancelar la acción actual\n\n"
+                + "¡Espero ayudarte a mantenerte organizado!"),
+        HELLO_MEMBER("🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n"
+                + "📝 /start - Iniciar y obtener un resumen\n"
+                + "📋 /todolist - Ver tu lista de tareas\n"
+                + "➕ /additem - Añadir una nueva tarea\n"
+                + "❌ /cancel - Cancelar la acción actual\n\n"
+                + "¡Espero ayudarte a mantenerte organizado!"),
         SUMMARY("Puedes usar estos comandos:\n/todolist para ver tus tareas\n/additem para agregar una tarea\n/logout para cerrar sesion"),
 	BOT_REGISTERED_STARTED("Bot registered and started succesfully!"),
         LOGIN("Por favor, usa /login para iniciar sesión."),

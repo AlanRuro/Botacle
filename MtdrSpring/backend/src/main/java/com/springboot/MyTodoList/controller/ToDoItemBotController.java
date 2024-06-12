@@ -324,7 +324,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                 send(chatId, "No tienes permisos para ver esta lista.");
             }
         } else if (message.equals(BotCommands.CANCEL.getCommand())) {
-            cancelAction(chatId);
+            send(chatId, "No hay nada para cancelar");
         } else {
             replyToUnkownText(chatId);
         }
@@ -332,8 +332,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private void handleTaskSession(long chatId, TaskDto newTaskSession, String text) {
         if (text.equals(BotCommands.CANCEL.getCommand())) {
-            taskSessionService.deleteTaskSession(chatId);
-            send(chatId, "Accion cancelada");
+            cancelAction(chatId);
             return;
         }
 
@@ -424,36 +423,13 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         send(chatId, BotMessages.UNKNOWN_TEXT.getMessage());
     }
 
-    private void sendWelcomManagerMessage(long chatId) {
-        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n"
-                + "📝 /start - Iniciar y obtener un resumen\n"
-                + "📋 /todolist - Ver tu lista de tareas\n"
-                + "➕ /additem - Añadir una nueva tarea\n"
-                + "👥 /employeeslist - Ver las tareas de tus empleados\n"
-                + "❌ /cancel - Cancelar la acción actual\n\n"
-                + "¡Espero ayudarte a mantenerte organizado!";
-
-        send(chatId, welcomeMessage);
-    }
-
-    private void sendWelcomeMessage(long chatId) {
-        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n"
-                + "📝 /start - Iniciar y obtener un resumen\n"
-                + "📋 /todolist - Ver tu lista de tareas\n"
-                + "➕ /additem - Añadir una nueva tarea\n"
-                + "❌ /cancel - Cancelar la acción actual\n\n"
-                + "¡Espero ayudarte a mantenerte organizado!";
-
-        send(chatId, welcomeMessage);
-    }
-
     private void replyToStart(long chatId) {
 
         MemberDto memberDto = getMember(chatId);
         if (memberDto.getIsManager()) {
-            sendWelcomManagerMessage(chatId);
+            send(chatId, BotMessages.HELLO_MANAGER.getMessage());
         } else {
-            sendWelcomeMessage(chatId);
+            send(chatId, BotMessages.HELLO_MEMBER.getMessage());
         }
 
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
