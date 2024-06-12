@@ -33,6 +33,7 @@ import com.springboot.MyTodoList.util.BotMessages;
 import com.springboot.MyTodoList.util.PatternChecker;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
+
     private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
     private final TaskService taskService;
     private final TaskSessionService taskSessionService;
@@ -68,7 +69,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             long chatId = update.getCallbackQuery().getMessage().getChatId();
             String callbackData = update.getCallbackQuery().getData();
             handleCallbacks(chatId, callbackData, update);
-        } 
+        }
     }
 
     private void handleReplies(long chatId, long userId, String message) {
@@ -138,15 +139,15 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             TaskDto taskDto = taskService.getTaskById(taskId);
             if (taskDto != null) {
                 String taskMessage = String.format(
-                    "*Nombre:* %s\n" +
-                    "*Descripción:* %s\n" +
-                    "*Fecha de inicio:* %s\n" +
-                    "*Fecha de fin:* %s",
-                    taskDto.getName(),
-                    taskDto.getDescription(),
-                    taskDto.getStartDate() != null ? taskDto.getStartDate().toString() : "No especificada",
-                    taskDto.getEndDate() != null ? taskDto.getEndDate().toString() : "No especificada"
-                );                
+                        "*Nombre:* %s\n"
+                        + "*Descripción:* %s\n"
+                        + "*Fecha de inicio:* %s\n"
+                        + "*Fecha de fin:* %s",
+                        taskDto.getName(),
+                        taskDto.getDescription(),
+                        taskDto.getStartDate() != null ? taskDto.getStartDate().toString() : "No especificada",
+                        taskDto.getEndDate() != null ? taskDto.getEndDate().toString() : "No especificada"
+                );
                 sendMarkdown(chatId, taskMessage);
                 taskService.updateTask(taskDto);
             }
@@ -183,7 +184,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         }
     }
 
-
     private void handleTaskEdit(long chatId, String data) {
         int taskId = Integer.parseInt(data.substring(5));
         TaskDto taskDto = taskService.getTaskById(taskId);
@@ -216,12 +216,12 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         } else if (data.startsWith("Delete-")) {
             handleTaskDelete(chatId, data);
         }
-    } 
-   
+    }
+
     private void handleTaskDelete(long chatId, String data) {
         int taskId = Integer.parseInt(data.substring(7));
         logger.info("Attempting to delete task with ID: " + taskId);
-        
+
         // Fetch task before deletion to verify it exists
         TaskDto taskBeforeDelete = taskService.getTaskById(taskId);
         if (taskBeforeDelete == null) {
@@ -229,13 +229,13 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             send(chatId, "Tarea no encontrada 😕");
             return;
         }
-        
+
         boolean deleted = taskService.deleteTask(taskId);
-        
+
         // Double-check if the task is still in the database
         TaskDto taskAfterDelete = taskService.getTaskById(taskId);
         logger.info("Task after deletion: " + (taskAfterDelete == null ? "null" : taskAfterDelete.getTaskId()));
-        
+
         if (deleted && taskAfterDelete == null) {
             logger.info("Task deleted successfully: " + taskId);
             send(chatId, "Tarea eliminada 🗑️");
@@ -244,12 +244,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             send(chatId, "Tarea no eliminada 😕");
         }
     }
-    
 
     private void sendEditMenu(long chatId, TaskDto taskDto) {
         InlineKeyboardMarkup editKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
-    
+
         List<InlineKeyboardButton> row1 = new ArrayList<>();
         InlineKeyboardButton nameButton = new InlineKeyboardButton();
         nameButton.setText("Editar nombre ✏️");
@@ -259,49 +258,46 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         descButton.setCallbackData("EditDesc-" + taskDto.getTaskId());
         row1.add(nameButton);
         row1.add(descButton);
-    
+
         List<InlineKeyboardButton> row2 = new ArrayList<>();
         InlineKeyboardButton doneButton = new InlineKeyboardButton();
         doneButton.setText("Marcar como hecho ✅");
         doneButton.setCallbackData("EditDone-" + taskDto.getTaskId());
         row2.add(doneButton);
-    
+
         List<InlineKeyboardButton> row3 = new ArrayList<>();
         InlineKeyboardButton deleteButton = new InlineKeyboardButton();
         deleteButton.setText("Eliminar tarea 🗑️");
         deleteButton.setCallbackData("Delete-" + taskDto.getTaskId());
         row3.add(deleteButton);
-    
+
         List<InlineKeyboardButton> row4 = new ArrayList<>();
         InlineKeyboardButton cancelButton = new InlineKeyboardButton();
         cancelButton.setText("Cancelar ❌");
         cancelButton.setCallbackData(BotCommands.CANCEL.getCommand());
         row4.add(cancelButton);
-    
+
         keyboardRows.add(row1);
         keyboardRows.add(row2);
         keyboardRows.add(row3);
         keyboardRows.add(row4);
         editKeyboardMarkup.setKeyboard(keyboardRows);
-    
+
         String taskMessage = String.format(
-            "*Nombre:* %s\n" +
-            "*Descripción:* %s\n" +
-            "*Fecha de inicio:* %s\n" +
-            "*Fecha de fin:* %s",
-            taskDto.getName(),
-            taskDto.getDescription(),
-            taskDto.getStartDate() != null ? taskDto.getStartDate().toString() : "No especificada",
-            taskDto.getEndDate() != null ? taskDto.getEndDate().toString() : "No especificada"
+                "*Nombre:* %s\n"
+                + "*Descripción:* %s\n"
+                + "*Fecha de inicio:* %s\n"
+                + "*Fecha de fin:* %s",
+                taskDto.getName(),
+                taskDto.getDescription(),
+                taskDto.getStartDate() != null ? taskDto.getStartDate().toString() : "No especificada",
+                taskDto.getEndDate() != null ? taskDto.getEndDate().toString() : "No especificada"
         );
-        
 
         sendMarkdown(chatId, taskMessage);
         sendInlineKeyboard(chatId, "Acciones ⚙️", editKeyboardMarkup);
     }
-    
 
-    
     private void sendMarkdown(long chatId, String text) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
@@ -335,6 +331,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleTaskSession(long chatId, TaskDto newTaskSession, String text) {
+        if (text.equals(BotCommands.CANCEL.getCommand())) {
+            taskSessionService.deleteTaskSession(chatId);
+            send(chatId, "Accion cancelada");
+            return;
+        }
+
+        if (PatternChecker.hasSpecialCharacters(text) || !PatternChecker.isUTF8(text)) {
+            send(chatId, "Texto invalido. Vuelva a intentarlo");
+            return;
+        }
+        
         logger.info("isEdit? " + newTaskSession.getIsEdit());
         if (newTaskSession.getIsEdit()) {
             handleTaskSessionEdit(chatId, newTaskSession, text);
@@ -344,11 +351,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleTaskSessionAdd(long chatId, TaskDto newTaskSession, String text) {
-        if (PatternChecker.hasSpecialCharacters(text) || !PatternChecker.isUTF8(text)) {
-            send(chatId, "Texto invalido");
-            return;
-        }
-        
         if (newTaskSession.getName() == null) {
             newTaskSession.setName(text);
             send(chatId, "Ingresa la descripción");
@@ -393,11 +395,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void handleTaskSessionEdit(long chatId, TaskDto newTaskSession, String text) {
-        if (PatternChecker.hasSpecialCharacters(text) || !PatternChecker.isUTF8(text)) {
-            send(chatId, "Texto invalido");
-            return;
-        }
-        
         logger.info("Editing task session");
         String updateText = "";
         if (newTaskSession.getName() == null) {
@@ -428,24 +425,24 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
 
     private void sendWelcomManagerMessage(long chatId) {
-        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
-                "📝 /start - Iniciar y obtener un resumen\n" +
-                "📋 /todolist - Ver tu lista de tareas\n" +
-                "➕ /additem - Añadir una nueva tarea\n" +
-                "👥 /employeeslist - Ver las tareas de tus empleados\n" +
-                "❌ /cancel - Cancelar la acción actual\n\n" +
-                "¡Espero ayudarte a mantenerte organizado!";
+        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n"
+                + "📝 /start - Iniciar y obtener un resumen\n"
+                + "📋 /todolist - Ver tu lista de tareas\n"
+                + "➕ /additem - Añadir una nueva tarea\n"
+                + "👥 /employeeslist - Ver las tareas de tus empleados\n"
+                + "❌ /cancel - Cancelar la acción actual\n\n"
+                + "¡Espero ayudarte a mantenerte organizado!";
 
         send(chatId, welcomeMessage);
     }
 
     private void sendWelcomeMessage(long chatId) {
-        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n" +
-                "📝 /start - Iniciar y obtener un resumen\n" +
-                "📋 /todolist - Ver tu lista de tareas\n" +
-                "➕ /additem - Añadir una nueva tarea\n" +
-                "❌ /cancel - Cancelar la acción actual\n\n" +
-                "¡Espero ayudarte a mantenerte organizado!";
+        String welcomeMessage = "🤖 ¡Hola! Soy Botacle, tu bot de lista de tareas. Aquí están los comandos que puedes usar:\n\n"
+                + "📝 /start - Iniciar y obtener un resumen\n"
+                + "📋 /todolist - Ver tu lista de tareas\n"
+                + "➕ /additem - Añadir una nueva tarea\n"
+                + "❌ /cancel - Cancelar la acción actual\n\n"
+                + "¡Espero ayudarte a mantenerte organizado!";
 
         send(chatId, welcomeMessage);
     }
@@ -457,7 +454,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             sendWelcomManagerMessage(chatId);
         } else {
             sendWelcomeMessage(chatId);
-        }             
+        }
 
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
