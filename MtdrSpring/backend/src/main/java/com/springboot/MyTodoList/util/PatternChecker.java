@@ -21,4 +21,8 @@ public class PatternChecker {
             return false;
         } 
     } 
+    
+    public static boolean hasValidNumOfCharacters(String text, int numCharacters) {
+        return text.length() <= numCharacters;
+    } 
 }

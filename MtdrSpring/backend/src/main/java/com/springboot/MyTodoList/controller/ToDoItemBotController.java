@@ -351,9 +351,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private void handleTaskSessionAdd(long chatId, TaskDto newTaskSession, String text) {
         if (newTaskSession.getName() == null) {
+            if (!PatternChecker.hasValidNumOfCharacters(text, 45)) {
+                send(chatId, "Texto demasiado largo. Solo se admiten " + 45 + " caracteres.");
+                return;
+            }
             newTaskSession.setName(text);
             send(chatId, "Ingresa la descripción");
         } else if (newTaskSession.getDescription() == null) {
+            if (!PatternChecker.hasValidNumOfCharacters(text, 65)) {
+                send(chatId, "Texto demasiado largo. Solo se admiten " + 65 + " caracteres.");
+                return;
+            }
             newTaskSession.setDescription(text);
             send(chatId, "Ingresa la fecha de inicio (YYYY-MM-DD):");
         } else if (newTaskSession.getStartDate() == null) {
@@ -397,9 +405,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         logger.info("Editing task session");
         String updateText = "";
         if (newTaskSession.getName() == null) {
+            if (!PatternChecker.hasValidNumOfCharacters(text, 45)) {
+                send(chatId, "Texto demasiado largo. Solo se admiten " + 45 + " caracteres.");
+                return;
+            }
             newTaskSession.setName(text);
             updateText = "Nombre actualizado con éxito! ✅";
         } else if (newTaskSession.getDescription() == null) {
+            if (!PatternChecker.hasValidNumOfCharacters(text, 65)) {
+                send(chatId, "Texto demasiado largo. Solo se admiten " + 65 + " caracteres.");
+                return;
+            }
             newTaskSession.setDescription(text);
             updateText = "Descripción actualizada con éxito ✅";
         }
