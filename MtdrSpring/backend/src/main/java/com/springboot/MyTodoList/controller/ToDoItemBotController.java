@@ -136,6 +136,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                         taskDto.getEndDate() != null ? taskDto.getEndDate().toString() : "No especificada"
                 );
                 sendMarkdown(chatId, taskMessage);
+                taskFacade.updateTask(taskDto);
             }
         }
     }
