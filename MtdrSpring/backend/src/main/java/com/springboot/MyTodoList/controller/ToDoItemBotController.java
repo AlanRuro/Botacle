@@ -72,6 +72,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private void handleReplies(long chatId, long userId, String message) {
         TaskDto taskSessionDto = taskSessionService.getTaskSession(chatId);
         if (taskSessionDto != null) {
+            logger.info("Task session: " + taskSessionDto.getTaskSessionId());
+            logger.info("Task session: " + taskSessionDto.getTaskSessionId());
             handleTaskSession(chatId, taskSessionDto, message);
         } else {
             MemberDto memberDto = getMember(userId);
@@ -346,9 +348,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
     private void handleTaskSessionAdd(long chatId, TaskDto newTaskSession, String text) {
         if (newTaskSession.getName() == null) {
+            if (!PatternChecker.hasValidNumOfCharacters(text, 45)) {
+                send(chatId, "Texto demasiado largo. Solo se admiten " + 45 + " caracteres.");
+                return;
+            }
             newTaskSession.setName(text);
-            send(chatId, "Ingresa la descripcion");
+            send(chatId, "Ingresa la descripción");
         } else if (newTaskSession.getDescription() == null) {
+            if (!PatternChecker.hasValidNumOfCharacters(text, 65)) {
+                send(chatId, "Texto demasiado largo. Solo se admiten " + 65 + " caracteres.");
+                return;
+            }
             newTaskSession.setDescription(text);
             send(chatId, "Ingresa la fecha de inicio (YYYY-MM-DD):");
         } else if (newTaskSession.getStartDate() == null) {
@@ -385,16 +395,37 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         row.add(noButton);
         keyboardRows.add(row);
         infoKeyboardMarkup.setKeyboard(keyboardRows);
-        sendInlineKeyboard(chatId, newTaskSession.getName() + " " + newTaskSession.getDescription(), infoKeyboardMarkup);
+
+        String taskMessage = String.format(
+                "*Nombre:* %s\n"
+                + "*Descripción:* %s\n"
+                + "*Fecha de inicio:* %s\n"
+                + "*Fecha de fin:* %s",
+                newTaskSession.getName(),
+                newTaskSession.getDescription(),
+                newTaskSession.getStartDate() != null ? newTaskSession.getStartDate().toString() : "No especificada",
+                newTaskSession.getEndDate() != null ? newTaskSession.getEndDate().toString() : "No especificada"
+        );
+
+        sendMarkdown(chatId, taskMessage);
+        sendInlineKeyboard(chatId, "Acciones ⚙️", infoKeyboardMarkup);
     }
 
     private void handleTaskSessionEdit(long chatId, TaskDto newTaskSession, String text) {
         logger.info("Editing task session");
         String updateText = "";
         if (newTaskSession.getName() == null) {
+            if (!PatternChecker.hasValidNumOfCharacters(text, 45)) {
+                send(chatId, "Texto demasiado largo. Solo se admiten " + 45 + " caracteres.");
+                return;
+            }
             newTaskSession.setName(text);
             updateText = "Nombre actualizado con éxito! ✅";
         } else if (newTaskSession.getDescription() == null) {
+            if (!PatternChecker.hasValidNumOfCharacters(text, 65)) {
+                send(chatId, "Texto demasiado largo. Solo se admiten " + 65 + " caracteres.");
+                return;
+            }
             newTaskSession.setDescription(text);
             updateText = "Descripción actualizada con éxito ✅";
         }
@@ -500,6 +531,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                 doneButton.setText("Completar ✅");
                 doneButton.setCallbackData("EditDone-" + task.getTaskId());
                 row.add(doneButton);
+            } else {
+                InlineKeyboardButton deleteButton = new InlineKeyboardButton();
+                deleteButton.setText("Eliminar 🗑️");
+                deleteButton.setCallbackData("Delete-" + task.getTaskId());
+                row.add(deleteButton);
             }
             rows.add(row);
         }
