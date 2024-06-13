@@ -521,6 +521,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                 doneButton.setText("Completar ✅");
                 doneButton.setCallbackData("EditDone-" + task.getTaskId());
                 row.add(doneButton);
+            } else {
+                InlineKeyboardButton deleteButton = new InlineKeyboardButton();
+                deleteButton.setText("Eliminar 🗑️");
+                deleteButton.setCallbackData("Delete-" + task.getTaskId());
+                row.add(deleteButton);
             }
             rows.add(row);
         }
