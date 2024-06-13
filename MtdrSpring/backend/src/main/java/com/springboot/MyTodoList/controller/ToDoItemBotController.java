@@ -398,7 +398,20 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         row.add(noButton);
         keyboardRows.add(row);
         infoKeyboardMarkup.setKeyboard(keyboardRows);
-        sendInlineKeyboard(chatId, newTaskSession.getName() + " " + newTaskSession.getDescription(), infoKeyboardMarkup);
+
+        String taskMessage = String.format(
+                "*Nombre:* %s\n"
+                + "*Descripción:* %s\n"
+                + "*Fecha de inicio:* %s\n"
+                + "*Fecha de fin:* %s",
+                newTaskSession.getName(),
+                newTaskSession.getDescription(),
+                newTaskSession.getStartDate() != null ? newTaskSession.getStartDate().toString() : "No especificada",
+                newTaskSession.getEndDate() != null ? newTaskSession.getEndDate().toString() : "No especificada"
+        );
+
+        sendMarkdown(chatId, taskMessage);
+        sendInlineKeyboard(chatId, "Acciones ⚙️", infoKeyboardMarkup);
     }
 
     private void handleTaskSessionEdit(long chatId, TaskDto newTaskSession, String text) {
