@@ -3,6 +3,8 @@ package com.springboot.MyTodoList.dto;
 
 public class MemberDto {
 
+    private Integer id;
+    
     private String name;
 
     private String lastName;
@@ -18,6 +20,16 @@ public class MemberDto {
     private String username;
     
     private String password;
+
+    
+    
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;

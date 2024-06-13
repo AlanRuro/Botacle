@@ -25,13 +25,9 @@ public class MemberService {
         return null;
     }
 
-    public List<MemberDto> getEmployeesByTelegramId(long telegramId) {
-        MemberDto manager = getMemberByTelegramId(telegramId);
-        if (manager != null && manager.getIsManager()) {
-            List<Member> employees = memberRepository.findByTeamId(manager.getTeamId());
-            return employees.stream().map(this::toDto).collect(Collectors.toList());
-        }
-        return null;
+    public List<MemberDto> getEmployeesByTeamId(int teamId) {
+        List<Member> employees = memberRepository.findByTeamId(teamId);
+        return employees.stream().map(this::toDto).collect(Collectors.toList());
     }
 
     public MemberDto getMemberByTelegramId(long id) {
@@ -43,9 +39,15 @@ public class MemberService {
             return null;
         }
     }
+    
+    public List<MemberDto> getMembersOfManager(MemberDto member) {
+        List<Member> employees = memberRepository.findMembersOfManager(member.getId(), member.getTeamId());
+        return employees.stream().map(this::toDto).collect(Collectors.toList());
+    }
 
     private MemberDto toDto(Member member) {
         MemberDto memberDto = new MemberDto();
+        memberDto.setId(member.getId());
         memberDto.setName(member.getName());
         memberDto.setLastName(member.getLastName());
         memberDto.setEmail(member.getEmail());
