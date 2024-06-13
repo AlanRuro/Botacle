@@ -12,8 +12,6 @@ public enum BotLabels {
 	DELETE("DELETE"),
 	MY_TODO_LIST("List all the tasks 📝"),
 	MY_EMPLOYEES_LIST("MY EMPLOYEES LIST"),
-        LOGIN("Login"),
-	LOGOUT("Sign out"),
 	DASH("-");
 
 	private String label;

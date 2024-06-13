@@ -15,7 +15,6 @@ public class BotCommandFactory {
         botCommands.add(new BotCommand(BotCommands.TODO_LIST.getCommand(), BotLabels.MY_TODO_LIST.getLabel()));
         botCommands.add(new BotCommand(BotCommands.CANCEL.getCommand(), BotLabels.CANCEL.getLabel()));
         botCommands.add(new BotCommand(BotCommands.HIDE.getCommand(), BotLabels.HIDE_MAIN_SCREEN.getLabel()));
-        botCommands.add(new BotCommand(BotCommands.LOGOUT.getCommand(), BotLabels.LOGOUT.getLabel()));
         return getCommandsForChat(chatId, botCommands);
     }
     
@@ -25,13 +24,11 @@ public class BotCommandFactory {
         botCommands.add(new BotCommand(BotCommands.ADD_ITEM.getCommand(), BotLabels.ADD_ITEM.getLabel()));
         botCommands.add(new BotCommand(BotCommands.TODO_LIST.getCommand(), BotLabels.MY_TODO_LIST.getLabel()));  
         botCommands.add(new BotCommand(BotCommands.CANCEL.getCommand(), BotLabels.CANCEL.getLabel()));
-        botCommands.add(new BotCommand(BotCommands.LOGOUT.getCommand(), BotLabels.LOGOUT.getLabel()));
         return getCommandsForChat(chatId, botCommands);
     }
     
     public static SetMyCommands getCommandsForNoMember(long chatId) {
         List<BotCommand> botCommands = new ArrayList<>();
-        botCommands.add(new BotCommand(BotCommands.LOGIN.getCommand(), BotLabels.LOGIN.getLabel()));
         return getCommandsForChat(chatId, botCommands);
     }
     
