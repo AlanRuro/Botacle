@@ -11,25 +11,19 @@ import org.junit.jupiter.api.Test;
 
 import com.springboot.MyTodoList.dto.MemberDto;
 import com.springboot.MyTodoList.dto.TaskDto;
-import com.springboot.MyTodoList.service.MemberService;
-import com.springboot.MyTodoList.service.TaskService;
-import com.springboot.MyTodoList.service.TaskSessionService;
+import com.springboot.MyTodoList.facade.TaskManagementFacade;
 
 
 public class ToDoItemBotControllerTest {
 
     private ToDoItemBotController botController;
-    private TaskService taskService;
-    private TaskSessionService taskSessionService;
-    private MemberService memberService;
+    private TaskManagementFacade taskFacade;
 
     @BeforeEach
     public void setUp() {
-        taskService = mock(TaskService.class);
-        taskSessionService = mock(TaskSessionService.class);
-        memberService = mock(MemberService.class);
-        botController = new ToDoItemBotController("6994682300:AAFE0w69uB0UKoLayRv3qM5GheVUV8p1k8A", "testoracle34_bot", taskService, memberService, taskSessionService);
-        when(memberService.getMemberByTelegramId(anyLong())).thenReturn(new MemberDto());
+        taskFacade = mock(TaskManagementFacade.class);
+        botController = new ToDoItemBotController("6994682300:AAFE0w69uB0UKoLayRv3qM5GheVUV8p1k8A", "testoracle34_bot", taskFacade);
+        when(taskFacade.getMember(anyLong())).thenReturn(new MemberDto());
     }
 
     @Test
@@ -42,11 +36,11 @@ public class ToDoItemBotControllerTest {
         mockedTaskDto.setStartDate(LocalDate.now());
         mockedTaskDto.setEndDate(LocalDate.now().plusDays(1));
 
-        when(taskService.getTaskById(anyInt())).thenReturn(mockedTaskDto);
+        when(taskFacade.getTaskById(anyInt())).thenReturn(mockedTaskDto);
 
         botController.handleTaskCallback(chatId, data);
 
-        verify(taskService).updateTask(any(TaskDto.class));
+        verify(taskFacade).updateTask(any(TaskDto.class));
     }
 
 }
